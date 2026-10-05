@@ -1,0 +1,78 @@
+.viewer { box-sizing: border-box; width: 100%; min-height: 100vh; max-width: 980px; margin: 0 auto; padding: 24rpx 12rpx calc(54rpx + env(safe-area-inset-bottom)); overflow-x: hidden; background: var(--paper); color: var(--ink); }
+.viewer-heading { display: flex; flex-direction: column; gap: 6rpx; margin: 6rpx 8rpx 18rpx; }
+.viewer-kicker { color: var(--red-dark); font-size: 23rpx; font-weight: 800; letter-spacing: 1rpx; }
+.viewer-title { overflow: hidden; color: var(--ink); font-size: 36rpx; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.viewer-meta { color: var(--ink-2); font-size: 22rpx; }
+
+.viewer-tools { display: flex; gap: 12rpx; margin: 0 6rpx 14rpx; }
+.viewer-tool {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 64rpx;
+  margin: 0;
+  padding: 0 18rpx;
+  border: 2rpx solid var(--ink);
+  border-radius: var(--r-md);
+  background: var(--card);
+  box-shadow: 0 4rpx 0 var(--edge-2);
+  color: var(--ink);
+  font-size: 23rpx;
+  font-weight: 800;
+  line-height: 1.2;
+  transition: transform var(--t-fast), box-shadow var(--t-fast), background-color var(--t-fast);
+}
+.viewer-tool.active { background: var(--yellow); box-shadow: 0 4rpx 0 var(--edge-yellow); }
+.viewer-tool:active { transform: translateY(var(--lift-1)); box-shadow: 0 2rpx 0 var(--edge-2); }
+
+.viewer-palette { margin: 0 2rpx 14rpx; white-space: nowrap; }
+.viewer-palette__row { display: flex; gap: 10rpx; padding: 4rpx 4rpx 8rpx; }
+.viewer-color { display: flex; flex: none; align-items: center; gap: 8rpx; padding: 8rpx 12rpx; border: 2rpx solid #c9ad97; border-radius: var(--r-md); background: var(--card); color: var(--ink-2); font-size: 22rpx; font-weight: 700; line-height: 1.2; }
+.viewer-color.active { border-color: var(--ink); background: var(--yellow); box-shadow: 0 4rpx 0 var(--edge-yellow); color: var(--ink); }
+.viewer-color__dot { width: 26rpx; height: 26rpx; border: 2rpx solid rgba(74, 50, 41, .3); border-radius: 50%; }
+
+.count-instruction { margin: 0 8rpx 12rpx; padding: 12rpx 16rpx; border: 2rpx solid #e0b968; border-radius: var(--r-md); background: #fff2d7; color: #6b4a22; font-size: 23rpx; font-weight: 800; line-height: 1.4; text-align: center; }
+
+.viewer-board-wrap { display: flex; justify-content: center; max-width: 100%; overflow: hidden; padding: 12rpx 0; border: var(--bw) solid var(--ink); border-radius: var(--r-md); background: var(--card); box-shadow: 0 var(--lift-2) 0 var(--edge-1); }
+.viewer-canvas { display: block; flex: none; }
+
+.viewer-controls { display: flex; align-items: center; justify-content: space-between; gap: 10rpx; margin: 20rpx 4rpx 0; }
+.viewer .viewer-controls button {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 72rpx;
+  height: 62rpx;
+  margin: 0;
+  padding: 0 12rpx;
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--r-md);
+  background: var(--yellow);
+  box-shadow: 0 var(--lift-1) 0 var(--edge-yellow);
+  color: var(--ink);
+  font-size: 32rpx;
+  font-weight: 800;
+  line-height: 1;
+}
+.viewer .viewer-controls button[disabled] { border-color: #c4b6ab; background: #ece3da; box-shadow: 0 2rpx 0 #cfc2b7; color: #a3968b; opacity: 1; }
+.viewer-controls text { min-width: 390rpx; color: var(--ink-2); font-size: 22rpx; font-weight: 700; text-align: center; }
+.viewer-hint { display: block; margin: 14rpx 0 20rpx; color: var(--ink-2); font-size: 22rpx; text-align: center; }
+
+.viewer-actions { margin: 18rpx 4rpx 0; }
+.viewer-actions button { width: 100%; font-size: 26rpx; }
+.viewer-error { display: block; margin: 14rpx 4rpx; color: #c33b35; font-size: 24rpx; }
+.viewer-export-canvas { position: absolute; top: 0; left: -100000rpx; }
+.viewer-state { display: flex; min-height: 70vh; flex-direction: column; align-items: center; justify-content: center; gap: 20rpx; color: var(--ink-2); font-size: 26rpx; }
+.viewer-state button { margin: 0; }
+
+@media (min-width: 700px) {
+  .viewer { padding: 24px 18px calc(60px + env(safe-area-inset-bottom)); }
+  .viewer-title { font-size: 30px; }
+  .viewer-meta, .viewer-hint { font-size: 15px; }
+  .viewer-tool, .viewer-color, .viewer-controls text { font-size: 15px; }
+}

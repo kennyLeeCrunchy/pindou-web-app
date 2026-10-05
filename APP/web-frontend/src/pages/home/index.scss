@@ -1,0 +1,44 @@
+.home-page { padding-top: 48rpx; }
+.hero { padding: 28rpx 0 56rpx; }
+.brand-row { display: flex; align-items: center; gap: 12rpx; }
+.brand-mark { width: 56rpx; height: 56rpx; }
+.eyebrow { display: block; color: var(--red-dark); font-size: 24rpx; font-weight: 800; letter-spacing: 2rpx; }
+.title { display: block; max-width: 650rpx; margin-top: 28rpx; color: var(--ink); font-size: 60rpx; font-weight: 800; line-height: 1.24; }
+.subtitle { display: block; margin-top: 24rpx; color: var(--ink-2); font-size: 30rpx; line-height: 1.65; }
+.start-button { width: 100%; margin-top: 44rpx; }
+.privacy-tip { display: block; margin-top: 24rpx; color: var(--muted); font-size: 24rpx; line-height: 1.6; text-align: center; }
+.privacy-message { display: block; }
+.privacy-link { display: block; color: var(--red-dark); font-weight: 700; text-decoration: underline; white-space: nowrap; }
+
+.steps { padding: 36rpx 32rpx; }
+.section-title { display: block; margin-bottom: 8rpx; color: var(--ink); font-size: 34rpx; font-weight: 800; }
+.step { display: flex; align-items: center; padding: 28rpx 0; border-bottom: 2rpx solid #f0e3d6; }
+.step:last-child { border-bottom: 0; padding-bottom: 8rpx; }
+.step-number {
+  display: flex;
+  flex: 0 0 72rpx;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 72rpx;
+  height: 72rpx;
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--r-md);
+  color: var(--red-dark);
+  background: var(--yellow);
+  box-shadow: 0 var(--lift-1) 0 var(--edge-yellow);
+  font-size: 26rpx;
+  font-weight: 800;
+  line-height: 1;
+}
+.step-copy { min-width: 0; margin-left: 24rpx; }
+.step-title,
+.step-description { display: block; }
+.step-title { color: var(--ink); font-size: 30rpx; font-weight: 800; }
+.step-description { margin-top: 8rpx; color: var(--ink-2); font-size: 25rpx; line-height: 1.5; }
+
+@media (min-width: 700px) {
+  .home-page { padding-top: 64rpx; }
+  .hero { max-width: 850px; margin: 0 auto; }
+  .steps { max-width: 850px; margin: 0 auto; }
+}

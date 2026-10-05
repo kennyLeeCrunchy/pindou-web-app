@@ -1,0 +1,8 @@
+/*postcss-pxtransform disable*/
+.pixel-nav { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; box-sizing: border-box; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: #fff8f0; }
+.pixel-nav__frame { display: flex; box-sizing: border-box; width: 100%; max-width: 620px; height: 62px; margin: 0 auto; padding: 5px; border: 2px solid #493028; border-radius: 18px; background: #e7d6c6; box-shadow: 0 5px 0 #b49a87; }
+.pixel-nav__key { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; height: 49px; border: 2px solid transparent; border-radius: 12px; color: #6c5346; font-size: 11px; font-weight: 700; line-height: 16px; }
+.pixel-nav__key--active { border-color: #493028; background: #d94b45; box-shadow: inset 0 -4px 0 #a8322e; color: #fffdf8; }
+.pixel-nav__symbol { height: 20px; font-size: 17px; font-weight: 800; line-height: 20px; }
+.pixel-nav__label { height: 17px; line-height: 17px; }
+@media (min-width: 700px) { .pixel-nav { padding-bottom: calc(12px + env(safe-area-inset-bottom)); } .pixel-nav__frame { height: 66px; } .pixel-nav__key { height: 53px; } }

@@ -1,0 +1,79 @@
+/*postcss-pxtransform disable*/
+/* Three free-standing Mario-style blocks: thick outline, flat face, solid lower
+   face. Pressing (or being the current tab) sinks the block into its edge.
+   Colours are literal because the tab bar sits outside the page tree and does
+   not inherit the tokens declared on `page`. */
+
+.pixel-tabbar {
+  position: fixed;
+  z-index: 10;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  box-sizing: border-box;
+  gap: 14px;
+  align-items: flex-start;
+  height: calc(80px + env(safe-area-inset-bottom));
+  padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+  background: #fff8f0;
+}
+
+.pixel-key {
+  display: flex;
+  flex: 1 1 0;
+  box-sizing: border-box;
+  min-width: 0;
+  height: 54px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 3px solid #4a3229;
+  border-radius: 12px;
+  background: #ffe9b8;
+  box-shadow: 0 6px 0 #4a3229;
+  color: #6b4a3c;
+}
+
+/* Sinking uses margin, not transform: a transformed child keeps a composited
+   layer alive inside this position:fixed bar, which is the kind of layer the
+   webview fails to repaint when another page is pushed over the tab page. */
+.pixel-key--pressed {
+  margin-top: 4px;
+  box-shadow: 0 2px 0 #4a3229;
+}
+
+.pixel-key--active {
+  margin-top: 4px;
+  background: #e04a42;
+  box-shadow: 0 2px 0 #4a3229;
+  color: #fffdf8;
+}
+
+.pixel-key__label {
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 14px;
+}
+
+/* Icons are 10x10 pixel maps baked into SVG backgrounds (one per colour). The
+   earlier box-shadow version stacked ~60 shadows per icon inside this fixed
+   layer, which is expensive to repaint. */
+.pixel-icon {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  background: no-repeat center / 20px 20px;
+}
+
+@media (min-width: 700px) {
+  .pixel-key { height: 60px; }
+}
+
+.pixel-icon--home { background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 10 10%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%236b4a3c%27 d=%27M4 0h2v1H4zM3 1h4v1H3zM2 2h6v1H2zM1 3h8v1H1zM0 4h10v1H0zM1 5h8v1H1zM1 6h3v1H1zM6 6h3v1H6zM1 7h3v1H1zM6 7h3v1H6zM1 8h3v1H1zM6 8h3v1H6zM1 9h3v1H1zM6 9h3v1H6z%27/%3E%3C/svg%3E"); }
+.pixel-key--active .pixel-icon--home { background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 10 10%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23fffdf8%27 d=%27M4 0h2v1H4zM3 1h4v1H3zM2 2h6v1H2zM1 3h8v1H1zM0 4h10v1H0zM1 5h8v1H1zM1 6h3v1H1zM6 6h3v1H6zM1 7h3v1H1zM6 7h3v1H6zM1 8h3v1H1zM6 8h3v1H6zM1 9h3v1H1zM6 9h3v1H6z%27/%3E%3C/svg%3E"); }
+.pixel-icon--works { background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 10 10%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%236b4a3c%27 d=%27M0 0h4v1H0zM6 0h4v1H6zM0 1h4v1H0zM6 1h4v1H6zM0 2h4v1H0zM6 2h4v1H6zM0 3h4v1H0zM6 3h4v1H6zM0 6h4v1H0zM6 6h4v1H6zM0 7h4v1H0zM6 7h4v1H6zM0 8h4v1H0zM6 8h4v1H6zM0 9h4v1H0zM6 9h4v1H6z%27/%3E%3C/svg%3E"); }
+.pixel-key--active .pixel-icon--works { background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 10 10%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23fffdf8%27 d=%27M0 0h4v1H0zM6 0h4v1H6zM0 1h4v1H0zM6 1h4v1H6zM0 2h4v1H0zM6 2h4v1H6zM0 3h4v1H0zM6 3h4v1H6zM0 6h4v1H0zM6 6h4v1H6zM0 7h4v1H0zM6 7h4v1H6zM0 8h4v1H0zM6 8h4v1H6zM0 9h4v1H0zM6 9h4v1H6z%27/%3E%3C/svg%3E"); }
+.pixel-icon--settings { background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 10 10%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%236b4a3c%27 d=%27M4 0h2v1H4zM1 1h2v1H1zM4 1h2v1H4zM7 1h2v1H7zM1 2h8v1H1zM2 3h2v1H2zM6 3h2v1H6zM0 4h4v1H0zM6 4h4v1H6zM0 5h4v1H0zM6 5h4v1H6zM2 6h2v1H2zM6 6h2v1H6zM1 7h8v1H1zM1 8h2v1H1zM4 8h2v1H4zM7 8h2v1H7zM4 9h2v1H4z%27/%3E%3C/svg%3E"); }
+.pixel-key--active .pixel-icon--settings { background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 10 10%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23fffdf8%27 d=%27M4 0h2v1H4zM1 1h2v1H1zM4 1h2v1H4zM7 1h2v1H7zM1 2h8v1H1zM2 3h2v1H2zM6 3h2v1H6zM0 4h4v1H0zM6 4h4v1H6zM0 5h4v1H0zM6 5h4v1H6zM2 6h2v1H2zM6 6h2v1H6zM1 7h8v1H1zM1 8h2v1H1zM4 8h2v1H4zM7 8h2v1H7zM4 9h2v1H4z%27/%3E%3C/svg%3E"); }

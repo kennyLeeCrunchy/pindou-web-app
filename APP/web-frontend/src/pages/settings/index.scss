@@ -1,0 +1,32 @@
+.settings-page { padding-top: 40rpx; background: var(--paper); }
+.setting-group, .local-data { margin-bottom: 24rpx; padding: 8rpx 32rpx; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; padding: 30rpx 0; }
+.setting-title, .setting-description { display: block; }
+.setting-title { color: var(--ink); font-size: 30rpx; font-weight: 800; }
+.setting-description { margin-top: 10rpx; color: var(--ink-2); font-size: 25rpx; line-height: 1.6; }
+.setting-row > view { min-width: 0; }
+
+.chevron {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 60rpx;
+  height: 60rpx;
+  border: 2rpx solid var(--ink);
+  border-radius: var(--r-md);
+  background: var(--yellow);
+  box-shadow: 0 4rpx 0 var(--edge-yellow);
+  color: var(--ink);
+}
+
+.local-data { padding-top: 32rpx; padding-bottom: 32rpx; }
+.contact-card { margin-bottom: 24rpx; padding: 32rpx; }
+.contact-email { display: block; margin-top: 18rpx; color: var(--red-dark); font-size: 28rpx; font-weight: 700; word-break: break-all; }
+.contact-copy { width: 100%; margin-top: 24rpx; }
+.block { display: block; }
+.clear-button { width: 100%; margin-top: 28rpx; color: #a43f2d; }
+.review-note { padding: 24rpx 12rpx; }
+.review-note-title { display: block; color: var(--ink-2); font-size: 26rpx; font-weight: 800; }
+.version { display: block; margin-top: 36rpx; color: #ae9d90; font-size: 24rpx; text-align: center; }

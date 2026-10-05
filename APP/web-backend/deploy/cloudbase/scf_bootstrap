@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")"
+export PYTHONPATH="$PWD/third_party:$PWD"
+export PYTHONDONTWRITEBYTECODE=1
+export TMPDIR=/tmp
+export PINDOU_RUNTIME_DIR=/tmp/pindou-web-runtime
+export PINDOU_I2I_TIMEOUT="${PINDOU_I2I_TIMEOUT:-70}"
+exec /var/lang/python310/bin/python3.10 -m uvicorn app.api_main:app --host 0.0.0.0 --port "${PINDOU_PORT:-9000}" --workers 1 --no-access-log

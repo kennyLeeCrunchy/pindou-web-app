@@ -1,0 +1,104 @@
+.works { position: relative; z-index: 1; box-sizing: border-box; width: 100%; min-height: 100vh; max-width: 980px; margin: 0 auto; padding: 34rpx 28rpx calc(60rpx + env(safe-area-inset-bottom)); background: var(--paper); color: var(--ink); }
+.heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12rpx; margin: 10rpx 0 28rpx; }
+.title { font-size: 44rpx; font-weight: 800; }
+.muted { color: var(--ink-2); font-size: 24rpx; }
+.works-list { display: flex; flex-direction: column; gap: 22rpx; }
+
+.works .card {
+  box-sizing: border-box;
+  display: flex;
+  min-width: 0;
+  padding: 22rpx;
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  box-shadow: 0 var(--lift-2) 0 var(--edge-1), inset 0 2rpx 0 #fff;
+}
+
+.preview {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  width: 180rpx;
+  height: 180rpx;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2rpx solid #c9ad97;
+  border-radius: var(--r-md);
+  background: #f6ece2;
+}
+.thumbnail-image { display: block; width: 100%; height: 100%; flex: none; }
+.preview-size {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 4rpx 10rpx;
+  border-top-left-radius: 8rpx;
+  background: rgba(74, 50, 41, .82);
+  color: #fff8e8;
+  font-size: 18rpx;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.meta { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 8rpx; margin-left: 22rpx; }
+.name { display: block; overflow: hidden; color: var(--ink); font-size: 30rpx; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+
+.actions { display: flex; gap: 10rpx; width: 100%; margin-top: auto; }
+
+/* Flex centring does the alignment. The old absolute-positioned label plus
+   line-height:1 fought the border box and left the glyphs a couple of rpx low. */
+.action-button {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 0;
+  height: 60rpx;
+  margin: 0;
+  padding: 0 6rpx;
+  border: 2rpx solid var(--ink);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-size: 24rpx;
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
+  transition: transform var(--t-fast), box-shadow var(--t-fast);
+}
+.action-label { display: block; color: inherit; font-size: inherit; font-weight: inherit; line-height: 1.1; }
+.action-button::after { border: 0; }
+.rename-button { background: #ffe6a8; box-shadow: 0 6rpx 0 #c08a2c; }
+.delete-button { background: #f7d9d2; box-shadow: 0 6rpx 0 #b3705f; }
+.view-work { background: #cfe8b8; box-shadow: 0 6rpx 0 #6d9a4e; }
+.open { background: var(--red); box-shadow: 0 6rpx 0 var(--edge-red); color: #fff; }
+.action-button:active,
+.action-button-pressed { transform: translateY(var(--lift-1)); box-shadow: 0 2rpx 0 rgba(74, 50, 41, .45); }
+
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20rpx; text-align: center; }
+.empty-icon {
+  width: 168rpx;
+  height: 144rpx;
+  background: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 14 12%27 shape-rendering=%27crispEdges%27%3E%3Cpath fill=%27%23c33b35%27 d=%27M3 7h1v1H3zM4 7h1v1H4zM5 7h1v1H5zM6 7h1v1H6zM7 7h1v1H7zM8 7h1v1H8zM9 7h1v1H9zM10 7h1v1H10zM4 8h1v1H4zM5 8h1v1H5zM6 8h1v1H6zM7 8h1v1H7zM8 8h1v1H8zM9 8h1v1H9zM5 9h1v1H5zM6 9h1v1H6zM7 9h1v1H7zM8 9h1v1H8zM6 10h1v1H6zM7 10h1v1H7z%27/%3E%3Cpath fill=%27%23e04a42%27 d=%27M2 0h1v1H2zM3 0h1v1H3zM4 0h1v1H4zM5 0h1v1H5zM8 0h1v1H8zM9 0h1v1H9zM10 0h1v1H10zM11 0h1v1H11zM1 1h1v1H1zM2 1h1v1H2zM3 1h1v1H3zM4 1h1v1H4zM5 1h1v1H5zM6 1h1v1H6zM7 1h1v1H7zM8 1h1v1H8zM9 1h1v1H9zM10 1h1v1H10zM11 1h1v1H11zM12 1h1v1H12zM0 2h1v1H0zM1 2h1v1H1zM2 2h1v1H2zM3 2h1v1H3zM4 2h1v1H4zM5 2h1v1H5zM6 2h1v1H6zM7 2h1v1H7zM8 2h1v1H8zM9 2h1v1H9zM10 2h1v1H10zM11 2h1v1H11zM12 2h1v1H12zM13 2h1v1H13zM0 3h1v1H0zM1 3h1v1H1zM2 3h1v1H2zM3 3h1v1H3zM4 3h1v1H4zM5 3h1v1H5zM6 3h1v1H6zM7 3h1v1H7zM8 3h1v1H8zM9 3h1v1H9zM10 3h1v1H10zM11 3h1v1H11zM12 3h1v1H12zM13 3h1v1H13zM0 4h1v1H0zM1 4h1v1H1zM2 4h1v1H2zM3 4h1v1H3zM4 4h1v1H4zM5 4h1v1H5zM6 4h1v1H6zM7 4h1v1H7zM8 4h1v1H8zM9 4h1v1H9zM10 4h1v1H10zM11 4h1v1H11zM12 4h1v1H12zM13 4h1v1H13zM1 5h1v1H1zM2 5h1v1H2zM3 5h1v1H3zM4 5h1v1H4zM5 5h1v1H5zM6 5h1v1H6zM7 5h1v1H7zM8 5h1v1H8zM9 5h1v1H9zM10 5h1v1H10zM11 5h1v1H11zM12 5h1v1H12zM2 6h1v1H2zM3 6h1v1H3zM4 6h1v1H4zM5 6h1v1H5zM6 6h1v1H6zM7 6h1v1H7zM8 6h1v1H8zM9 6h1v1H9zM10 6h1v1H10zM11 6h1v1H11z%27/%3E%3Cpath fill=%27%23ffffff%27 opacity=%270.85%27 d=%27M3 2h1v1H3zM4 2h1v1H4zM2 3h1v1H2z%27/%3E%3C/svg%3E") no-repeat center / 100% 100%;
+}
+.empty-title { font-size: 38rpx; font-weight: 800; }
+.empty .muted { max-width: 550rpx; line-height: 1.6; }
+.empty .primary { width: auto; margin-top: 18rpx; padding: 0 50rpx; }
+
+@media (min-width: 700px) {
+  .works { padding: 32PX 28PX calc(120PX + env(safe-area-inset-bottom)); }
+  .heading { margin: 0 0 24PX; }
+  .title { font-size: 32PX; }
+  .muted { font-size: 16PX; }
+  .works-list { flex-direction: row; flex-wrap: wrap; gap: 24rpx; }
+  .works .card { width: calc(50% - 12rpx); }
+  .works .card:only-child { width: 100%; max-width: 100%; }
+  .preview { width: 180rpx; height: 180rpx; }
+  .preview-size { font-size: 13PX; }
+  .name { font-size: 22PX; }
+  .action-button { height: 46PX; font-size: 17PX; }
+}

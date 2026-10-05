@@ -1,0 +1,62 @@
+.status-panel {
+  box-sizing: border-box;
+  margin: 28rpx 0;
+  padding: 38rpx 28rpx;
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--r-lg);
+  background: var(--card);
+  box-shadow: 0 var(--lift-2) 0 var(--edge-1);
+  text-align: center;
+}
+.status-panel__title, .status-panel__description { display: block; }
+.status-panel__title { color: var(--ink); font-size: 30rpx; font-weight: 800; }
+.status-panel__description { margin-top: 12rpx; color: var(--ink-2); font-size: 25rpx; line-height: 1.6; }
+.status-panel--error { background: #fff5f1; border-color: #a82e28; box-shadow: 0 var(--lift-2) 0 #e0b8b0; }
+.status-panel--error .status-panel__title { color: #9c2f28; }
+
+/* Pixel spinner: eight stepped blocks rotating in sync, which reads as motion
+   at a glance and costs one animation instead of a blurred border trick. */
+.status-panel__spinner {
+  position: relative;
+  width: 56rpx;
+  height: 56rpx;
+  margin: 0 auto 22rpx;
+  animation: status-spin 800ms steps(8, end) infinite;
+}
+.status-panel__spinner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 12rpx;
+  height: 12rpx;
+  margin-left: -6rpx;
+  border-radius: 2rpx;
+  background: var(--red);
+  box-shadow:
+    0 22rpx 0 rgba(224, 74, 66, .18),
+    22rpx 0 0 rgba(224, 74, 66, .06),
+    -22rpx 0 0 rgba(224, 74, 66, .06),
+    0 -22rpx 0 rgba(224, 74, 66, .62);
+}
+@keyframes status-spin { to { transform: rotate(360deg); } }
+
+.status-panel__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 80rpx;
+  margin-top: 24rpx;
+  padding: 0 34rpx;
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--r-md);
+  background: var(--yellow);
+  box-shadow: 0 var(--lift-1) 0 var(--edge-yellow);
+  color: var(--ink);
+  font-size: 26rpx;
+  font-weight: 800;
+  line-height: 1.15;
+  transition: transform var(--t-fast), box-shadow var(--t-fast);
+}
+.status-panel__action:active { transform: translateY(var(--lift-1)); box-shadow: 0 0 0 var(--edge-yellow); }
