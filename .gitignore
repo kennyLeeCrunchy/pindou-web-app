@@ -33,3 +33,6 @@ __pycache__/
 **/project.private.config.json
 releases/**/code/
 releases/**/miniprogram-weapp/
+
+# Local technical report
+/docs/technical-route/
