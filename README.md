@@ -1,6 +1,6 @@
 # Pindou Web 应用
 
-此仓库拥有独立的 APP/web-frontend 和 APP/web-backend，不依赖其他三个项目，不使用跨项目软链接或共享源码目录。
+此仓库拥有独立的 APP/web-frontend 和 APP/web-backend
 
 已实现：localhost 和可信局域网浏览器入口、图片上传、两步转换、三档图纸、鼠标编辑、浏览器作品保存与 PNG 下载。保留独立 FastAPI 后端和原有图纸算法；Taro 构建目标已改为 H5，不引用其他项目。
 
