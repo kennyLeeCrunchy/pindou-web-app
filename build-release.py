@@ -27,7 +27,7 @@ if __name__ == "__main__":
         command.extend(["--exclude-module", module])
     subprocess.run(command + [str(BACKEND / "run_local.py")], cwd=ROOT, check=True)
     folder = BUILD / "dist/Pindou"
-    shutil.copyfile(ROOT / "README.md", folder / "使用说明.txt")
+    shutil.copyfile(ROOT / "WINDOWS.md", folder / "使用说明.txt")
     (folder / "配置 AI 密钥.cmd").write_text('@echo off\npushd "%~dp0"\nPindou.exe --configure\nif errorlevel 1 pause\npopd\n', encoding="ascii")
     OUTPUT.mkdir(parents=True, exist_ok=True)
     archive = OUTPUT / "pindou-web-windows-x64.zip"

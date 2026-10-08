@@ -10,7 +10,7 @@
 
 支持 Windows 10/11 x64，无需安装 Python 或 Node.js。不要在压缩包内直接运行，也不要删除 `_internal` 文件夹。服务窗口保持打开，关闭窗口或按 Ctrl+C 即停止运行。若 5188 已被占用，先关闭原来的拼豆服务。
 
-程序未签名，Windows 可能显示未知发布者提示。请从本仓库 Release 下载，并使用同页的 `SHA256SUMS.txt` 校验安装包。
+程序未签名，Windows 可能显示未知发布者提示。请从本仓库 Release 下载，并使用同页的 `SHA256SUMS.txt` 校验安装包。详细使用说明见 [Windows 版说明](WINDOWS.md)。
 
 ## AI 密钥配置
 
