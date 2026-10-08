@@ -37,10 +37,25 @@
 .count-instruction { margin: 0 8rpx 12rpx; padding: 12rpx 16rpx; border: 2rpx solid #e0b968; border-radius: var(--r-md); background: #fff2d7; color: #6b4a22; font-size: 23rpx; font-weight: 800; line-height: 1.4; text-align: center; }
 
 .viewer-board-wrap { display: flex; justify-content: center; max-width: 100%; overflow: hidden; padding: 12rpx 0; border: var(--bw) solid var(--ink); border-radius: var(--r-md); background: var(--card); box-shadow: 0 var(--lift-2) 0 var(--edge-1); }
-.viewer-canvas { display: block; flex: none; }
+.viewer-canvas { display: block; flex: none; touch-action: none; }
+
+.viewer-usage { margin: 24rpx 0; padding: 22rpx; border: var(--bw) solid var(--ink); border-radius: var(--r-md); background: var(--card); box-shadow: 0 var(--lift-2) 0 var(--edge-1); }
+.viewer-usage__title { display: block; font-size: 30rpx; font-weight: 800; }
+.viewer-usage__meta { display: block; margin: 8rpx 0 18rpx; color: var(--ink-2); font-size: 22rpx; }
+.viewer-usage__grid { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.viewer-usage__item { display: flex; box-sizing: border-box; align-items: center; gap: 10rpx; width: calc(50% - 6rpx); min-width: 0; padding: 12rpx; border: 2rpx solid var(--edge-1); border-radius: var(--r-sm); background: #faf7f2; }
+.viewer-usage__swatch { flex: none; box-sizing: border-box; width: 36rpx; height: 36rpx; border: 2rpx solid #bca99b; border-radius: 4rpx; }
+.viewer-usage__label { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.viewer-usage__code { font-size: 23rpx; font-weight: 800; }
+.viewer-usage__series { margin-top: 2rpx; color: var(--ink-2); font-size: 19rpx; }
+.viewer-usage__count { flex: none; font-size: 22rpx; font-weight: 700; white-space: nowrap; }
+
+@media (min-width: 700px) {
+  .viewer-usage__item { width: calc(33.333333% - 8rpx); }
+}
 
 .viewer-controls { display: flex; align-items: center; justify-content: space-between; gap: 10rpx; margin: 20rpx 4rpx 0; }
-.viewer .viewer-controls button {
+.viewer .viewer-controls .web-icon-button {
   display: flex;
   flex: none;
   align-items: center;
@@ -59,7 +74,7 @@
   font-weight: 800;
   line-height: 1;
 }
-.viewer .viewer-controls button[disabled] { border-color: #c4b6ab; background: #ece3da; box-shadow: 0 2rpx 0 #cfc2b7; color: #a3968b; opacity: 1; }
+.viewer .viewer-controls .web-icon-button[disabled] { border-color: #c4b6ab; background: #ece3da; box-shadow: 0 2rpx 0 #cfc2b7; color: #a3968b; opacity: 1; }
 .viewer-controls text { min-width: 390rpx; color: var(--ink-2); font-size: 22rpx; font-weight: 700; text-align: center; }
 .viewer-hint { display: block; margin: 14rpx 0 20rpx; color: var(--ink-2); font-size: 22rpx; text-align: center; }
 

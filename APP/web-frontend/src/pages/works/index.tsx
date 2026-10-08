@@ -6,6 +6,7 @@ import type { Work } from '../../shared/types'
 import { deleteWork, getWorks, renameWork } from '../../store/works'
 import { selectTab } from '../../custom-tab-bar/select'
 import { toUserMessage } from '../../utils/error'
+import { canvasImage, createCanvas } from '../../utils/browserImage'
 import './index.scss'
 
 const getThumbnailSize = () => {
@@ -32,7 +33,7 @@ function WorkThumbnail({ work, size }: { work: Work; size: number }) {
       const cellSize = size * 2 / Math.max(work.width, work.height, 1)
       const width = Math.max(1, Math.round(work.width * cellSize))
       const height = Math.max(1, Math.round(work.height * cellSize))
-      const canvas = Taro.createOffscreenCanvas({ type: '2d', width, height })
+      const canvas = createCanvas(width, height)
       const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
       const colors = new Map(work.palette.map(item => [item.code, item.hex]))
       ctx.fillStyle = '#ffffff'
@@ -44,8 +45,7 @@ function WorkThumbnail({ work, size }: { work: Work; size: number }) {
         const top = Math.round(y * cellSize)
         ctx.fillRect(left, top, Math.round((x + 1) * cellSize) - left, Math.round((y + 1) * cellSize) - top)
       }))
-      const image = await Taro.canvasToTempFilePath({ canvas: canvas as unknown as Taro.Canvas,
-        x: 0, y: 0, width, height, destWidth: width, destHeight: height, fileType: 'png' })
+      const image = canvasImage(canvas)
       thumbnailCache.set(work.id, { updatedAt: work.updatedAt, path: image.tempFilePath })
       if (active) setImagePath(image.tempFilePath)
     }
@@ -85,7 +85,7 @@ export default function WorksPage() {
   if (!works.length) return <View className='works empty'>
     <View className='empty-icon' /><Text className='empty-title'>还没有作品</Text>
     <Text className='muted'>在图纸预览中进入编辑器并保存作品，作品会显示在这里。</Text>
-    <Button className='raised-button primary' onClick={() => Taro.switchTab({ url: '/pages/home/index' })}>去创建</Button>
+    <Button className='raised-button primary' onClick={() => Taro.reLaunch({ url: '/pages/home/index' })}>去创建</Button>
   </View>
 
   return <View className='works'>

@@ -1,4 +1,3 @@
-import Taro from '@tarojs/taro'
 import type { PatternCount } from '../shared/types'
 
 export interface CellRange {
@@ -11,6 +10,8 @@ export interface CellRange {
 
 export interface DrawCellsOptions {
   showCodes?: boolean
+  /* Full-board previews keep their grid at small cell sizes, including 104×104. */
+  showGrid?: boolean
   highlightCode?: string
   selection?: CellRange
   axes?: boolean
@@ -20,6 +21,8 @@ export interface DrawCellsOptions {
   axisPad?: number
   /* Fixed viewport height; draw and clip any partial bottom row without stretching cells. */
   bufferCssHeight?: number
+  /* Export paper size and the top-left of the complete diagram, including axes. */
+  sheet?: { width: number; height: number; left: number; top: number }
 }
 
 export const axisPadFor = (cellSize: number) => Math.max(18, Math.round(cellSize * 1.8))
@@ -29,7 +32,7 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 let pixelRatio: number | undefined
 function dpr(): number {
   if (!pixelRatio) {
-    try { pixelRatio = Taro.getWindowInfo().pixelRatio || 2 } catch { pixelRatio = 2 }
+    pixelRatio = window.devicePixelRatio || 1
   }
   return pixelRatio
 }
@@ -38,10 +41,12 @@ function dpr(): number {
    interface paid one JS->native bridge call per draw primitive (thousands per
    frame), which is what made redraws crawl. The first query can race the
    mount, so retry once. */
-function canvasNode(id: string): Promise<any | undefined> {
-  const grab = () => new Promise<any>(resolve =>
-    Taro.createSelectorQuery().select(`#${id}`).fields({ node: true }).exec((result: any) => resolve(result?.[0]?.node)))
-  return grab().then(node => node || new Promise<void>(resolve => setTimeout(resolve, 50)).then(grab))
+async function canvasNode(id: string): Promise<any | undefined> {
+  const grab = () => {
+    const element = document.getElementById(id)
+    return element instanceof HTMLCanvasElement ? element : element?.querySelector('canvas')
+  }
+  return grab() || new Promise<void>(resolve => setTimeout(resolve, 50)).then(grab)
 }
 
 /* Redraws go through an async node query, so two overlapping calls can finish
@@ -84,14 +89,19 @@ export async function drawCells(
   const cssWidth = extent * cellSize
   const cssHeight = options.bufferCssHeight ?? rowCount * cellSize
   if (options.bufferCssHeight !== undefined) rowCount = Math.ceil(cssHeight / cellSize - 1e-9)
-  const bufferWidth = Math.round((cssWidth + pad * 2) * scale)
-  const bufferHeight = Math.round((cssHeight + pad * 2) * scale)
+  const bufferWidth = Math.round((options.sheet?.width ?? cssWidth + pad * 2) * scale)
+  const bufferHeight = Math.round((options.sheet?.height ?? cssHeight + pad * 2) * scale)
   if (canvas.width !== bufferWidth || canvas.height !== bufferHeight) {
     canvas.width = bufferWidth
     canvas.height = bufferHeight
   }
   const ctx = canvas.getContext('2d')
   ctx.setTransform(scale, 0, 0, scale, 0, 0)
+  if (options.sheet) {
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, options.sheet.width, options.sheet.height)
+    ctx.translate(options.sheet.left, options.sheet.top)
+  }
   if (pad) ctx.translate(pad, pad)
   const colors = new Map(palette.map(item => [item.code, item.hex]))
 
@@ -143,7 +153,7 @@ export async function drawCells(
     ctx.fillRect(left, top, width, height)
   }
 
-  if (cellSize >= 6) {
+  if (options.showGrid ?? cellSize >= 6) {
     const minor: [number, number, number, number][] = []
     const major: [number, number, number, number][] = []
     for (let i = 0; i <= extent; i++) {

@@ -23,7 +23,7 @@ export default function HomePage() {
         <Text className='subtitle'>上传图片，选择卡通主体、风景整图或照片重绘，再编辑三档图纸。</Text>
         <Button className='primary-button start-button' onClick={startConvert}>选择图片开始制作</Button>
         <View className='privacy-tip'>
-          <Text className='privacy-message'>所选图片会上传到服务器；照片重绘还会交给 AI 服务处理。</Text>
+          <Text className='privacy-message'>图片在本机后端处理；照片重绘会发送给阿里云 AI 服务，使用现有账户额度。</Text>
           <Text className='privacy-link' onClick={() => Taro.navigateTo({ url: '/pages/privacy/index' })}>查看隐私说明 ›</Text>
         </View>
       </View>
@@ -31,7 +31,7 @@ export default function HomePage() {
       <View className='card steps'>
         <Text className='section-title'>三步完成</Text>
         {[
-          ['01', '选择图片', '从相册选择一张清晰的图片'],
+          ['01', '选择图片', '从电脑选择一张清晰的图片'],
           ['02', '生成图纸', '设置网格尺寸并匹配拼豆色号'],
           ['03', '编辑保存', '微调格子后保存作品或图片'],
         ].map(([number, title, description]) => (

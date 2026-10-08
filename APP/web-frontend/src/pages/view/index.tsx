@@ -1,20 +1,21 @@
 import Taro, { useDidHide, useDidShow, useLoad } from '@tarojs/taro'
-import { Button, Canvas, ScrollView, Text, View } from '@tarojs/components'
+import { ScrollView, Text, View } from '@tarojs/components'
 import { useEffect, useRef, useState } from 'react'
 import type { Work } from '../../shared/types'
 import { getWork } from '../../store/works'
-import { drawCells, axisPadFor, type CellRange } from '../../utils/canvas'
+import { drawCells, type CellRange } from '../../utils/canvas'
+import { createPatternImage, patternExportLayout } from '../../utils/patternExport'
+import { canvasCellAt, canvasPointFromClient, type CanvasViewport } from '../../utils/canvasTouch'
+import { BRAND_LABEL } from '../../data/palettes'
 import { toUserMessage } from '../../utils/error'
 import { saveImageToAlbum } from '../../utils/album'
 import './index.scss'
 
 const INITIAL_EXTENT = 26
 const MIN_EXTENT = 8
-const EXPORT_LIMIT = 1560
 /* On-screen coordinate strip, drawn inside the canvas by the shared axes code. */
 const AXIS_PAD = 20
 type Point = { clientX: number; clientY: number }
-type CanvasRect = { left: number; top: number; width: number; height: number }
 type Gesture =
   | { mode: 'count'; startRow: number; startColumn: number }
   | { mode: 'pan'; x: number; y: number; row: number; column: number; cellSize: number }
@@ -33,6 +34,7 @@ export default function ViewPage() {
   const [rowStart, setRowStart] = useState(0)
   const [columnStart, setColumnStart] = useState(0)
   const [boardSize, setBoardSize] = useState(290)
+  const [boardMeasured, setBoardMeasured] = useState(false)
   const [isTablet, setIsTablet] = useState(false)
   const [highlightMode, setHighlightMode] = useState(false)
   const [highlightCode, setHighlightCode] = useState('')
@@ -43,7 +45,7 @@ export default function ViewPage() {
   const [pageVisible, setPageVisible] = useState(true)
   const workIdRef = useRef('')
   const gesture = useRef<Gesture | null>(null)
-  const canvasRect = useRef<CanvasRect | null>(null)
+  const drawnViewport = useRef<CanvasViewport | null>(null)
   const lastMoveAt = useRef(0)
   const visibleRows = visibleRowsFor(extent, isTablet)
   const renderedRows = Math.ceil(extent * ROW_RATIO(isTablet) - 1e-9)
@@ -61,21 +63,41 @@ export default function ViewPage() {
   useDidHide(() => {
     setPageVisible(false)
     gesture.current = null
-    canvasRect.current = null
+    drawnViewport.current = null
   })
 
   useEffect(() => {
     const updateViewport = (width: number) => {
       const tablet = width >= 700
       setIsTablet(tablet)
-      setBoardSize(Math.max(180, Math.min(880, width - (tablet ? 120 : 80))))
+      gesture.current = null
     }
-    try { updateViewport(Taro.getWindowInfo().windowWidth || Taro.getSystemInfoSync().windowWidth) }
-    catch { /* use the initial board size */ }
-    const onResize: Taro.onWindowResize.Callback = event => updateViewport(event.size.windowWidth)
-    Taro.onWindowResize(onResize)
-    return () => Taro.offWindowResize(onResize as unknown as Taro.offWindowResize.Callback)
+    updateViewport(window.innerWidth)
+    const onResize = () => updateViewport(window.innerWidth)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [])
+
+  useEffect(() => {
+    setBoardMeasured(false)
+    if (!work || !pageVisible) return
+    const canvas = document.getElementById('view-canvas')
+    if (!canvas) return
+    let lastWidth = 0
+    const measure = () => {
+      const width = canvas.getBoundingClientRect().width - AXIS_PAD * 2
+      if (width <= 0 || Math.abs(width - lastWidth) < 0.01) return
+      lastWidth = width
+      drawnViewport.current = null
+      gesture.current = null
+      setBoardSize(width)
+      setBoardMeasured(true)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(canvas)
+    return () => observer.disconnect()
+  }, [work?.id, pageVisible])
 
   useEffect(() => {
     if (!work || !pageVisible) return
@@ -86,37 +108,32 @@ export default function ViewPage() {
   }, [work?.id])
 
   useEffect(() => {
-    if (!work) return
+    drawnViewport.current = null
+    if (!work || !pageVisible || !boardMeasured) return
+    let cancelled = false
     const maxRowStart = Math.max(0, work.height - visibleRows)
     const maxColumnStart = Math.max(0, work.width - extent)
     if (rowStart > maxRowStart) setRowStart(maxRowStart)
     if (columnStart > maxColumnStart) setColumnStart(maxColumnStart)
+    const view = { rowStart, columnStart, columns: extent, width: boardSize, height: boardSize * ROW_RATIO(isTablet), axisPad: AXIS_PAD }
     void drawCells('view-canvas', work.cells, work.palette, rowStart, columnStart, extent, boardSize / extent, visibleRows, {
       showCodes: true,
       axes: true,
       axisPad: AXIS_PAD,
-      bufferCssHeight: boardSize * ROW_RATIO(isTablet),
+      bufferCssHeight: view.height,
       highlightCode: highlightMode ? highlightCode : undefined,
       selection,
+    }).then(node => { if (!cancelled && node) drawnViewport.current = view }).catch(reason => {
+      if (!cancelled) setError(toUserMessage(reason))
     })
-  }, [work, pageVisible, rowStart, columnStart, extent, boardSize, visibleRows, highlightMode, highlightCode, selection])
+    return () => { cancelled = true }
+  }, [work, pageVisible, boardMeasured, rowStart, columnStart, extent, boardSize, visibleRows, isTablet, highlightMode, highlightCode, selection])
 
-  useEffect(() => {
-    if (!pageVisible) return
-    Taro.createSelectorQuery().select('#view-canvas').boundingClientRect(rect => {
-      if (!rect || Array.isArray(rect)) return
-      canvasRect.current = { left: rect.left, top: rect.top, width: rect.width, height: rect.height }
-    }).exec()
-  }, [work?.id, pageVisible, boardSize, extent, visibleRows])
-
-  if (!work) return <View className='viewer-state'><Text>作品不存在或已被删除</Text><Button onClick={() => Taro.navigateBack()}>返回</Button></View>
+  if (!work) return <View className='viewer-state'><Text>作品不存在或已被删除</Text><button type='button' onClick={() => Taro.navigateBack()}>返回</button></View>
 
   const maxExtent = work.width
   const minExtent = Math.min(MIN_EXTENT, maxExtent)
-  const exportCellSize = Math.max(8, Math.floor(EXPORT_LIMIT / Math.max(work.width, work.height)))
-  const exportPad = axisPadFor(exportCellSize)
-  const exportWidth = work.width * exportCellSize + exportPad * 2
-  const exportHeight = work.height * exportCellSize + exportPad * 2
+  const exportLayout = patternExportLayout(work)
   const selectedCount = selection
     ? selection.direction === 'row'
       ? Math.abs(selection.endColumn - selection.startColumn) + 1
@@ -148,15 +165,14 @@ export default function ViewPage() {
     setColumnStart(clamp(Math.round(centerColumn - size / 2), Math.max(0, work.width - size)))
   }
 
-  const cellAt = (point: Point, rect = canvasRect.current) => {
-    if (!rect?.width || !rect.height) return undefined
-    const cellSize = (rect.width - AXIS_PAD * 2) / extent
-    const localColumn = clamp(Math.floor((point.clientX - rect.left - AXIS_PAD) / cellSize), extent - 1)
-    const localRow = clamp(Math.floor((point.clientY - rect.top - AXIS_PAD) / cellSize), renderedRows - 1)
-    return { row: rowStart + localRow, column: columnStart + localColumn }
+  const cellAt = (point: Point) => {
+    const rect = document.getElementById('view-canvas')?.getBoundingClientRect()
+    const view = drawnViewport.current
+    return rect && view ? canvasCellAt(canvasPointFromClient(point, rect), view) : undefined
   }
 
   const touchStart = (event: any) => {
+    if (!drawnViewport.current) return
     const points = event.touches as Point[]
     if (points?.length >= 2) {
       const center = midpoint(points[0], points[1])
@@ -225,7 +241,7 @@ export default function ViewPage() {
     setSelection({ startRow: active.startRow, startColumn: active.startColumn, endRow, endColumn, direction })
   }
 
-  const touchEnd = (event: any) => {
+  const touchEnd = (event: any = { touches: [] }) => {
     if (event.touches?.length) { touchStart(event); return }
     gesture.current = null
   }
@@ -248,18 +264,9 @@ export default function ViewPage() {
     setError('')
     try {
       await new Promise<void>(resolve => Taro.nextTick(() => resolve()))
-      const node = await drawCells('view-export-canvas', work.cells, work.palette, 0, 0, work.width, exportCellSize, work.height, { showCodes: true, axes: true, scale: 1 })
-      if (!node) throw new Error('画布尚未就绪，请重试')
-      const image = await Taro.canvasToTempFilePath({
-        canvas: node,
-        width: exportWidth,
-        height: exportHeight,
-        destWidth: exportWidth,
-        destHeight: exportHeight,
-        fileType: 'png',
-      })
-      if (!await saveImageToAlbum(image.tempFilePath)) return
-      await Taro.showToast({ title: '已保存到相册', icon: 'success' })
+      const imagePath = await createPatternImage('view-export-canvas', work)
+      if (!await saveImageToAlbum(imagePath)) return
+      await Taro.showToast({ title: '已开始下载', icon: 'success' })
     } catch (reason) { setError(toUserMessage(reason)) }
     finally { setBusy(false) }
   }
@@ -268,12 +275,12 @@ export default function ViewPage() {
     <View className='viewer-heading'>
       <Text className='viewer-kicker'>拼豆看图 · 只读</Text>
       <Text className='viewer-title'>{work.name}</Text>
-      <Text className='viewer-meta'>{work.width} × {work.height} · {work.palette.length} 色 · 放大后查看格内色号</Text>
+      <Text className='viewer-meta'>{work.width} × {work.height} · {exportLayout.colors.length} 色 · 放大后查看格内色号</Text>
     </View>
 
     <View className='viewer-tools'>
-      <Button className={`viewer-tool ${highlightMode ? 'active' : ''}`} size='mini' onClick={toggleHighlight}>同色高亮{highlightMode ? '·开' : ''}</Button>
-      <Button className={`viewer-tool ${countMode ? 'active' : ''}`} size='mini' onClick={toggleCountMode}>数格子{countMode ? '·开' : ''}</Button>
+      <button type='button' className={`viewer-tool ${highlightMode ? 'active' : ''}`} onClick={toggleHighlight}>同色高亮{highlightMode ? '·开' : ''}</button>
+      <button type='button' className={`viewer-tool ${countMode ? 'active' : ''}`} onClick={toggleCountMode}>数格子{countMode ? '·开' : ''}</button>
     </View>
 
     {highlightMode && <ScrollView scrollX className='viewer-palette'>
@@ -289,18 +296,29 @@ export default function ViewPage() {
     </View>}
 
     {pageVisible && <View className='viewer-board-wrap'>
-      <Canvas type='2d' id='view-canvas' className='viewer-canvas' disableScroll style={{ width: `${boardSize + AXIS_PAD * 2}px`, height: `${boardSize * ROW_RATIO(isTablet) + AXIS_PAD * 2}px` }} onTouchStart={touchStart} onTouchMove={touchMove} onTouchEnd={touchEnd} onTouchCancel={() => { gesture.current = null }} />
+      <canvas id='view-canvas' className='viewer-canvas' style={{ width: '100%', height: `${boardSize * ROW_RATIO(isTablet) + AXIS_PAD * 2}px` }} onMouseDown={event => { event.preventDefault(); touchStart({ touches: [event] }) }} onMouseMove={event => { if (event.buttons === 1) touchMove({ touches: [event] }) }} onMouseUp={() => touchEnd()} onMouseLeave={() => touchEnd()} onTouchStart={touchStart} onTouchMove={touchMove} onTouchEnd={touchEnd} onTouchCancel={() => { gesture.current = null }} />
     </View>}
 
     <View className='viewer-controls'>
-      <Button disabled={extent >= maxExtent} onClick={() => zoom(extent * 1.45)} aria-label='缩小'><View className='pixel-glyph pixel-glyph--minus' /></Button>
+      <button type='button' className='web-icon-button' disabled={extent >= maxExtent} onClick={() => zoom(extent * 1.45)} aria-label='缩小'><View className='pixel-glyph pixel-glyph--minus' /></button>
       <Text>{rowStart + 1}–{Math.min(work.height, rowStart + renderedRows)} 行 · {columnStart + 1}–{Math.min(work.width, columnStart + extent)} 列</Text>
-      <Button disabled={extent <= minExtent} onClick={() => zoom(extent / 1.45)} aria-label='放大'><View className='pixel-glyph pixel-glyph--plus' /></Button>
+      <button type='button' className='web-icon-button' disabled={extent <= minExtent} onClick={() => zoom(extent / 1.45)} aria-label='放大'><View className='pixel-glyph pixel-glyph--plus' /></button>
     </View>
     <Text className='viewer-hint'>{countMode ? '单指拖动选格 · 双指平移或缩放' : '单指平移 · 双指缩放 · 用两侧坐标定位'}</Text>
 
+    <View className='viewer-usage'>
+      <Text className='viewer-usage__title'>颜色用量</Text>
+      <Text className='viewer-usage__meta'>{BRAND_LABEL[work.brand] || work.brand} · {exportLayout.colors.length} 色 · 共 {exportLayout.beads} 颗</Text>
+      <View className='viewer-usage__grid'>{exportLayout.colors.map(color => <View key={color.code} className='viewer-usage__item'>
+        <View className='viewer-usage__swatch' style={{ backgroundColor: color.hex }} />
+        <View className='viewer-usage__label'><Text className='viewer-usage__code'>{color.code}</Text><Text className='viewer-usage__series'>{color.series ? `${color.series}系` : '未标记'}</Text></View>
+        <Text className='viewer-usage__count'>{color.count} 颗</Text>
+      </View>)}</View>
+      {!exportLayout.colors.length && <Text className='viewer-usage__meta'>暂无用色</Text>}
+    </View>
+
     {error && <Text className='viewer-error'>{error}</Text>}
-    <View className='viewer-actions'><Button className='raised-button' loading={busy} disabled={busy} onClick={exportImage}>保存带色号图纸</Button></View>
-    {pageVisible && busy && <Canvas type='2d' id='view-export-canvas' className='viewer-export-canvas' style={{ width: `${exportWidth}px`, height: `${exportHeight}px` }} />}
+    <View className='viewer-actions'><button type='button' className='raised-button' disabled={busy} onClick={exportImage}>保存带色号图纸</button></View>
+    {pageVisible && busy && <canvas id='view-export-canvas' className='viewer-export-canvas' style={{ width: `${exportLayout.width}px`, height: `${exportLayout.height}px` }} />}
   </View>
 }

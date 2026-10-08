@@ -52,7 +52,41 @@
 .photo-notice-refresh { margin: 8rpx 0 0; padding: 8rpx; background: transparent; color: var(--red-dark); font-size: 24rpx; line-height: 1.5; }
 .photo-notice-confirm { margin: 0; padding: 24rpx; border-top: 2rpx solid #eee; border-radius: 0; background: #fff; color: var(--red-dark); font-size: 30rpx; font-weight: 700; line-height: 1.5; }
 
-.text-field { box-sizing: border-box; height: 78rpx; padding: 0 20rpx; border: 2rpx solid var(--ink); border-radius: var(--r-md); background: #fff; font-size: 27rpx; }
+.text-field {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: clamp(52PX, 78rpx, 64PX);
+  padding: 0 clamp(14PX, 20rpx, 20PX);
+  border: 2rpx solid var(--edge-2);
+  border-radius: var(--r-md);
+  background: #fffaf4;
+  color: var(--ink);
+  font-size: clamp(16PX, 27rpx, 20PX);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+/* Taro's inner input has its own height; fill the field to center native text. */
+.text-field .weui-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: normal;
+  caret-color: var(--red-dark);
+}
+.text-field .weui-input::placeholder { color: var(--muted); opacity: 1; }
+.text-field:focus-within { border-color: var(--red-dark); box-shadow: 0 0 0 3PX rgba(195, 59, 53, .12); }
+.text-field[disabled='true'] { background: #f1e7dc; color: var(--ink-2); }
+.text-field[disabled='true'] .weui-input { cursor: not-allowed; }
 
 .segments { display: flex; gap: 14rpx; }
 .segments button {

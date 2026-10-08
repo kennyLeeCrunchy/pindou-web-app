@@ -2,12 +2,13 @@
    Every length here is an even rpx value on purpose: 1rpx is a sub-pixel at the
    common 2x/3x device ratios, which is what made borders and solid edges look
    fuzzy and cheap. Outline = 4rpx, hairline = 2rpx, never odd. */
-page {
+page, body {
   --paper: #fff8f0;
   --card: #fffdf9;
   --ink: #4a3229;
   --ink-2: #7b6257;
   --muted: #97806f;
+  --local-nav-height: calc(72PX + env(safe-area-inset-bottom));
 
   --red: #e04a42;
   --red-dark: #c33b35;
@@ -36,6 +37,36 @@ page {
 }
 
 button::after { border: 0; }
+
+.local-nav {
+  position: fixed;
+  z-index: 10;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  gap: 12PX;
+  box-sizing: border-box;
+  height: var(--local-nav-height);
+  padding: 10PX 12PX calc(10PX + env(safe-area-inset-bottom));
+  background: #f4e7d7;
+  border-top: 1PX solid #dfc9b3;
+  font-size: 16PX;
+}
+.local-nav a { display: flex; align-items: center; justify-content: center; min-width: 0; flex: 1; max-width: 180PX; min-height: 44PX; color: var(--ink); text-decoration: none; font-weight: 700; }
+main { height: 100%; }
+/* Each Taro page scrolls independently; its viewport must end above the fixed nav. */
+.taro_router main > .taro_page {
+  height: calc(100vh - var(--local-nav-height));
+  height: calc(100dvh - var(--local-nav-height));
+  max-height: calc(100vh - var(--local-nav-height));
+  max-height: calc(100dvh - var(--local-nav-height));
+  box-sizing: border-box;
+  padding-bottom: 24PX;
+  scroll-padding-bottom: 16PX;
+}
+canvas { display: block; }
 
 .page-shell {
   box-sizing: border-box;

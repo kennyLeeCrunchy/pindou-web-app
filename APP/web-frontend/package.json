@@ -1,13 +1,13 @@
 {
-  "name": "perlabo-miniprogram",
+  "name": "pindou-web-frontend",
   "version": "0.1.0",
   "private": true,
-  "description": "拼豆助手微信小程序",
+  "description": "拼豆助手本地 Web 应用",
   "scripts": {
-    "build:weapp": "taro build --type weapp",
-    "dev:weapp": "taro build --type weapp --watch",
+    "build": "taro build --type h5",
+    "dev": "taro build --type h5 --watch",
     "typecheck": "tsc --noEmit",
-    "test:contract": "node --test tests/contract.test.cjs"
+    "test:contract": "node --test tests/browser-contract.test.cjs"
   },
   "browserslist": [
     "last 3 versions",
@@ -19,7 +19,7 @@
     "@tarojs/components": "4.1.5",
     "@tarojs/helper": "4.1.5",
     "@tarojs/plugin-framework-react": "4.1.5",
-    "@tarojs/plugin-platform-weapp": "4.1.5",
+    "@tarojs/plugin-platform-h5": "4.1.5",
     "@tarojs/react": "4.1.5",
     "@tarojs/runtime": "4.1.5",
     "@tarojs/shared": "4.1.5",

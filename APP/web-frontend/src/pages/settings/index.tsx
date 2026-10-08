@@ -9,7 +9,7 @@ export default function SettingsPage() {
   const clearLocalData = async () => {
     const result = await Taro.showModal({
       title: '清理本地数据',
-      content: '将清除本机作品、编辑记录、缓存图片和偏好设置，并取消待保存操作。已保存到相册的图片不受影响。',
+      content: '将清除本机作品、编辑记录、缓存图片和偏好设置，并取消待保存操作。已下载的图片不受影响。',
       confirmText: '确认清理',
       confirmColor: '#b74632',
     })

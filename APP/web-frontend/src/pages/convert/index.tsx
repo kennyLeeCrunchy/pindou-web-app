@@ -7,6 +7,7 @@ import type { QuotaStatus } from '../../services/api'
 import type { BeadBrand, ConversionMode, FramingMode, PreparedConversion } from '../../shared/types'
 import { toUserMessage } from '../../utils/error'
 import { materializePrepared, materializePreviews, saveLatestPattern } from '../../utils/pattern'
+import { canvasImage, chooseImageFile, createCanvas, loadImage, readImageFile } from '../../utils/browserImage'
 import './index.scss'
 
 const modes: { key: ConversionMode; title: string; help: string }[] = [
@@ -30,21 +31,18 @@ const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => Promise
    后端拿到图也会缩到 1536，这里目标边长一致。createImage 按 EXIF 方向解码，
    重编码后不再携带 EXIF，方向已经画进像素里。 */
 const downscale = async (src: string, targetSide: number, quality: number) => {
-  const info = await Taro.getImageInfo({ src })
+  const image = await loadImage(src)
+  const info = { width: image.naturalWidth, height: image.naturalHeight }
   const scale = Math.min(1, targetSide / Math.max(info.width, info.height))
   const width = Math.max(1, Math.round(info.width * scale))
   const height = Math.max(1, Math.round(info.height * scale))
-  const canvas = Taro.createOffscreenCanvas({ type: '2d', width, height })
+  const canvas = createCanvas(width, height)
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
-  const image = canvas.createImage()
-  await new Promise<void>((resolve, reject) => {
-    image.onload = () => resolve()
-    image.onerror = () => reject(new Error('图片解码失败'))
-    image.src = src
-  })
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, width, height)
   ctx.drawImage(image as unknown as CanvasImageSource, 0, 0, width, height)
-  const output = await Taro.canvasToTempFilePath({ canvas: canvas as unknown as Taro.Canvas, fileType: 'jpg', quality, x: 0, y: 0, width, height, destWidth: width, destHeight: height })
-  const size = await new Promise<number>(resolve => Taro.getFileSystemManager().getFileInfo({ filePath: output.tempFilePath, success: item => resolve(item.size), fail: () => resolve(0) }))
+  const output = canvasImage(canvas, 'jpg', quality)
+  const size = Math.floor(output.tempFilePath.split(',')[1].length * 3 / 4)
   return { path: output.tempFilePath, width, height, size }
 }
 const BRAND_KEY = 'pindou.brand.v1'
@@ -86,12 +84,12 @@ export default function ConvertPage() {
     if (loading) return
     try {
       setPickError('')
-      const result = await Taro.chooseMedia({ count: 1, mediaType: ['image'], sourceType: ['album', 'camera'], sizeType: ['original', 'compressed'] })
-      const file = result.tempFiles[0]
+      const file = await chooseImageFile()
       if (!file) return
-      const path = file.tempFilePath || ''
       if (file.size > HARD_SIZE_LIMIT) throw new Error('图片太大，请缩小后再选择')
-      const imageInfo = await Taro.getImageInfo({ src: path })
+      const path = await readImageFile(file)
+      const decoded = await loadImage(path)
+      const imageInfo = { type: file.type.split('/')[1], width: decoded.naturalWidth, height: decoded.naturalHeight }
       if (!supportedImage.test(imageInfo.type)) throw new Error('请选择 JPG、PNG 或 WebP 图片')
       let uploadPath = path
       let uploadSize = file.size
@@ -159,6 +157,8 @@ export default function ConvertPage() {
       </View><Text className='field-tip'>仅选择挂饰版时才会补全原图未显示的身体。</Text></>}
     </View>
     <Button className='raised-button primary-action' disabled={!filePath || loading} onClick={prepare}>{prepared ? '重新准备图片' : '第一步：准备图片'}</Button>
+    {loading && loadingStage === 'prepare' && <StatusPanel kind='loading' title='正在准备图片' description={mode === 'subject_cartoon' ? 'AI 重绘与主体提取可能需要约一分钟。' : '正在准备图像。'} />}
+    {error && loadingStage === 'prepare' && <StatusPanel kind='error' title='图片准备失败' description={error} />}
     {prepared && <View className='convert-card prepared-card'><Text className='section-title'>03 · 确认图像</Text>
       <Text className='field-tip'>确认图像后再生成图纸。修改色系、色数会复用这张图，不会再次调用 AI 重绘。</Text>
       <View className='prepared-stages'>{([['原图', prepared.images.original], ...(prepared.mode === 'subject_cartoon' ? [['AI 重绘', prepared.images.ai]] : []), ...(prepared.mode !== 'scene_direct' ? [['透明主体', prepared.images.subject]] : [])] as [string, string | undefined][]).map(([label, url]) => url && <View className='prepared-stage' key={label}><Image src={url} mode='aspectFit' onClick={() => { void Taro.previewImage({ urls: [url], current: url }) }} /><Text>{label}</Text></View>)}</View>
@@ -170,22 +170,22 @@ export default function ConvertPage() {
         <Picker mode='selector' disabled={loading} range={['智能选色数', ...colorOptions.map(v => `最多 ${v} 色`)]} value={customColors === undefined ? 0 : maxColors - 3} onChange={event => setCustomColors(Number(event.detail.value) === 0 ? undefined : colorOptions[Number(event.detail.value) - 1])}><Text className='picker-link'>修改 ›</Text></Picker>
       </View><Text className='field-tip'>默认自动选择颜色上限，最多 64 色；也可手动选择 4–64 色。实际用色可能更少。</Text>
     </View>
-    {loading && <StatusPanel kind='loading' title={loadingStage === 'prepare' ? '正在准备图片' : '正在生成图纸'} description={loadingStage === 'prepare' ? (mode === 'subject_cartoon' ? 'AI 重绘与主体提取可能需要约一分钟。' : '正在准备图像。') : '正在选择豆色并生成三档图纸，不会再次调用 AI 重绘。'} />}
-    {error && <StatusPanel kind='error' title={loadingStage === 'prepare' ? '图片准备失败' : '图纸生成失败'} description={error} />}
-    <Button className='raised-button primary-action' disabled={!prepared || loading} onClick={submit}>第二步：生成三档图纸</Button>
+    {loading && loadingStage === 'pattern' && <StatusPanel kind='loading' title='正在生成图纸' description='正在选择豆色并生成三档图纸，不会再次调用 AI 重绘。' />}
+    {error && loadingStage !== 'prepare' && <StatusPanel kind='error' title='图纸生成失败' description={error} />}
     {!loading && <Text className='tier-hint'>{prepared ? '将同时生成 52×52 · 78×78 · 104×104 三档尺寸；从预览返回可调整色数再生成。' : '请先完成第一步并确认图像。'}</Text>}
+    <Button className='raised-button primary-action' disabled={!prepared || loading} onClick={submit}>第二步：生成三档图纸</Button>
     {noticeOpen && <View className='photo-notice-overlay' onTouchMove={event => event.stopPropagation()}>
       <View className='photo-notice-dialog' ariaRole='dialog' ariaLabel='照片重绘使用说明'>
         <Text className='photo-notice-title'>照片重绘使用说明</Text>
         <ScrollView scrollY className='photo-notice-content'>
           <Text className='photo-notice-point'>1. 关于效果：此功能为测试功能，重绘效果尚不稳定，我们期待您的反馈</Text>
           <View className='photo-notice-point'>
-            <Text>2. 关于额度：每位用户每天有{quota?.limit ?? 20}次免费转图次数，</Text>
+            <Text>2. 本次启动最多允许 {quota?.limit ?? 20} 次 AI 尝试，重启服务后计数重置；阿里云仍按实际调用计费。</Text>
             <Text className='photo-notice-remaining'>当前次数剩余{quota ? (quota.unlimited ? '不限（您的账号已解除每日限制）' : `${quota.remaining}/${quota.limit}`) : (quotaError || '查询中…')}</Text>
             {quota && quotaError && <Text className='field-tip'>刷新失败，当前显示上次查询的额度</Text>}
             <Button className='photo-notice-refresh' disabled={quotaLoading} onClick={() => setQuotaRefresh(value => value + 1)}>刷新额度</Button>
           </View>
-          <Text className='photo-notice-point'>3. 关于隐私：此功能会将您的照片上传服务器并经AI重绘</Text>
+          <Text className='photo-notice-point'>3. 关于隐私：照片重绘会把图片和描述发送给阿里云北京 AI 服务。</Text>
         </ScrollView>
         <Button className='photo-notice-confirm' onClick={() => setNoticeOpen(false)}>我知道了</Button>
       </View>

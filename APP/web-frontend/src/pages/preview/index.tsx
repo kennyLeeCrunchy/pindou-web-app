@@ -8,6 +8,7 @@ import { getWork, saveWork, flushWorks } from '../../store/works'
 import { toUserMessage } from '../../utils/error'
 import { saveImageToAlbum } from '../../utils/album'
 import { countCells, getLatestPattern, totalBeads } from '../../utils/pattern'
+import { createPatternImage, patternExportLayout } from '../../utils/patternExport'
 import './index.scss'
 
 const sizes = [52, 78, 104] as const
@@ -37,6 +38,8 @@ export default function PreviewPage() {
   })
   useDidHide(() => setPageVisible(false))
   const selected = result && displayVariant(result, size)
+  const exportPattern = result && selected ? { width: size, height: size, cells: selected.variant.cells, palette: selected.variant.counts, brand: result.brand } : undefined
+  const exportLayout = exportPattern && patternExportLayout(exportPattern)
   void revision
   const openEditor = () => {
     if (!result || !selected) return
@@ -51,21 +54,13 @@ export default function PreviewPage() {
     } catch (reason) { setError(toUserMessage(reason)) }
   }
   const saveImage = async () => {
-    if (!selected?.variant.previewUrl || selected.edited || saving) return
+    if (!selected || !exportPattern || selected.edited || saving) return
     setSaving(true); setError('')
     try {
-      const url = selected.variant.previewUrl
-      let filePath = url
-      if (url.startsWith('data:image/png;base64,')) {
-        filePath = `${Taro.env.USER_DATA_PATH}/pattern-${size}.png`
-        Taro.getFileSystemManager().writeFileSync(filePath, url.slice('data:image/png;base64,'.length), 'base64')
-      } else if (/^https?:/.test(url)) {
-        const downloaded = await Taro.downloadFile({ url })
-        if (downloaded.statusCode !== 200) throw new Error('图纸图片下载失败')
-        filePath = downloaded.tempFilePath
-      }
-      if (!await saveImageToAlbum(filePath)) return
-      await Taro.showToast({ title: '已保存到相册', icon: 'success' })
+      await new Promise<void>(resolve => Taro.nextTick(() => resolve()))
+      const imagePath = await createPatternImage('preview-export', exportPattern)
+      if (!await saveImageToAlbum(imagePath)) return
+      await Taro.showToast({ title: '已开始下载', icon: 'success' })
     } catch (reason) { setError(toUserMessage(reason)) }
     finally { setSaving(false) }
   }
@@ -85,7 +80,7 @@ export default function PreviewPage() {
       <Text>{item}×{item}</Text><Text>{result.variants[item].counts.length} 色</Text><Text>{totalBeads(result.variants[item])} 颗</Text>
     </View>)}</View>
     <View className='preview-card'><Text className='section-title'>当前图纸 {edited ? '· 已保存作品' : ''}</Text>
-      {pageVisible && <PatternGrid cells={variant.cells} palette={variant.counts} previewUrl={variant.previewUrl} edited={edited} />}
+      {pageVisible && <PatternGrid cells={variant.cells} palette={variant.counts} />}
       <Text className='preview-hint'>{size}×{size} · {variant.counts.length} 色 · {totalBeads(variant)} 颗</Text>
     </View>
     <View className='preview-card'><Text className='section-title'>处理过程</Text><View className='stage-list'>{stages.map(([label, url]) => url
@@ -96,5 +91,6 @@ export default function PreviewPage() {
     </ScrollView></View>
     {error && <StatusPanel kind='error' title='保存失败' description={error} />}
     <View className='preview-actions'><Button className='secondary-button' onClick={openEditor}>编辑图纸</Button><Button className='raised-button' loading={saving} onClick={edited ? openEditor : saveImage}>{edited ? '进入编辑器导出' : '保存图纸图片'}</Button></View>
+    {pageVisible && saving && exportLayout && <canvas id='preview-export' className='preview-export-canvas' style={{ width: `${exportLayout.width}px`, height: `${exportLayout.height}px` }} />}
   </View>
 }

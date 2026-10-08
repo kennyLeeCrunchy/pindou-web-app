@@ -1,6 +1,6 @@
 # Web API 契约（0.4.0）
 
-状态：独立 Web 后端适配已实现；浏览器前端、公开注册登录和正式部署尚未实现。当前源码目录为 `APP/web-backend`，所有接口由标准 FastAPI 入口 `app.api_main:app` 提供。
+状态：独立 Web 后端及 localhost 浏览器接入已实现；公开注册登录和正式部署尚未实现。普通部署入口为 `app.api_main:app`；本地完整应用使用 `run_local.py`，在同源的 /api 请求通过本机边界校验后注入仅服务端持有的临时 Bearer 凭据。
 
 ## 认证与接口
 

@@ -4,7 +4,7 @@ import prodConfig from './prod'
 
 export default defineConfig<'webpack5'>(async (merge, { mode }) => {
   const baseConfig: UserConfigExport<'webpack5'> = {
-    projectName: 'perlabo-miniprogram',
+    projectName: 'pindou-web-frontend',
     date: '2026-08-11',
     designWidth: 750,
     deviceRatio: {
@@ -18,10 +18,18 @@ export default defineConfig<'webpack5'>(async (merge, { mode }) => {
     framework: 'react',
     compiler: 'webpack5',
     cache: { enable: true },
-    mini: {
+    h5: {
+      publicPath: '/',
+      router: { mode: 'hash' },
+      devServer: {
+        host: '127.0.0.1',
+        port: 5181,
+        proxy: [{ context: ['/api'], target: 'http://127.0.0.1:5188' }],
+      },
+      htmlPluginOption: { title: '拼豆助手 · 本地版' },
       postcss: {
         pxtransform: { enable: true, config: {} },
-        url: { enable: true, config: { limit: 1024 } },
+        url: { enable: true },
         cssModules: { enable: false },
       },
     },

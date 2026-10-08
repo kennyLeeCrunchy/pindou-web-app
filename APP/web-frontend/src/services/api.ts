@@ -1,25 +1,22 @@
-import Taro from '@tarojs/taro'
 import type { BeadBrand, ConversionMode, ConversionResult, FramingMode, PatternCount, PatternVariant, PreparedConversion } from '../shared/types'
-import { ensureSession, invalidateSession } from './auth'
 import { localDataEpoch, requireLocalDataEpoch } from '../store/dataEpoch'
 
-export const API_BASE_URL = (process.env.TARO_APP_API_BASE_URL || '').trim().replace(/\/$/, '')
+export const API_BASE_URL = ''
+async function localRequest(path: string, init: RequestInit = {}): Promise<Response> {
+  try {
+    return await fetch(path, { ...init, headers: { ...init.headers, 'X-Pindou-Local': '1' }, signal: AbortSignal.timeout(100000) })
+  } catch (reason) {
+    if (reason instanceof Error && /timeout|abort/i.test(reason.name)) throw new Error('处理超时，请重试')
+    throw new Error('本地服务连接失败，请确认启动窗口仍在运行')
+  }
+}
 export interface QuotaStatus { limit: number; remaining: number | null; unlimited: boolean }
 export async function getQuotaStatus(): Promise<QuotaStatus> {
-  if (!API_BASE_URL) throw new Error('服务地址尚未配置')
   const generation = localDataEpoch()
-  const attempt = async () => {
-    const token = await ensureSession()
-    requireLocalDataEpoch(generation)
-    const response = await Taro.request<Json>({ url: `${API_BASE_URL}/api/auth/quota`,
-      header: { 'X-Session-Token': token, 'Cache-Control': 'no-cache' }, timeout: 100000 })
-    requireLocalDataEpoch(generation)
-    return response
-  }
-  let response = await attempt()
-  if (response.statusCode === 401) { invalidateSession(); response = await attempt() }
-  if (response.statusCode < 200 || response.statusCode >= 300) throw new Error('额度暂时无法查询，请稍后重试')
-  const raw = response.data
+  const response = await localRequest('/api/auth/quota', { cache: 'no-store' })
+  const raw = await response.json()
+  requireLocalDataEpoch(generation)
+  if (!response.ok) throw new Error('额度暂时无法查询，请稍后重试')
   if (!raw || !Number.isInteger(raw.limit) || raw.limit < 1 || raw.limit > 100 || typeof raw.unlimited !== 'boolean'
     || (raw.unlimited ? raw.remaining !== null : !Number.isInteger(raw.remaining) || raw.remaining < 0 || raw.remaining > raw.limit)) throw new Error('额度信息暂时无法读取')
   return { limit: raw.limit, remaining: raw.remaining, unlimited: raw.unlimited }
@@ -55,7 +52,7 @@ export function conversionForm(input: ConvertInput): Record<string, string> {
 type Json = Record<string, any>
 function absoluteUrl(value: unknown): string {
   if (typeof value !== 'string' || !value) return ''
-  if (/^(https?:|wxfile:|data:)/.test(value)) return value
+  if (/^(https?:|blob:|data:)/.test(value)) return value
   return API_BASE_URL ? `${API_BASE_URL}${value.startsWith('/') ? '' : '/'}${value}` : value
 }
 function parseCounts(value: unknown): PatternCount[] {
@@ -100,25 +97,19 @@ export function normalizeConversion(raw: Json): ConversionResult {
   }
 }
 async function uploadPattern(input: ConvertInput, endpoint: 'prepare' | 'convert'): Promise<Json> {
-  if (!API_BASE_URL) throw new Error('服务地址尚未配置，请联系管理员')
   const generation = localDataEpoch()
-  const form = conversionForm(input)
-  const attempt = async () => {
-    const token = await ensureSession()
-    requireLocalDataEpoch(generation)
-    const response = await Taro.uploadFile({ url: `${API_BASE_URL}/api/pattern/${endpoint}`, filePath: input.filePath, name: 'image', formData: form, header: { 'X-Session-Token': token }, timeout: 100000 })
-    requireLocalDataEpoch(generation)
-    let raw: Json
-    try { raw = JSON.parse(response.data) } catch { throw new Error('服务器返回了无法识别的数据') }
-    return { response, raw }
-  }
-  let result = await attempt()
-  if (result.response.statusCode === 401) {
-    invalidateSession()
-    result = await attempt()
-  }
-  if (result.response.statusCode < 200 || result.response.statusCode >= 300) throw new Error(String(result.raw.detail || `请求失败（${result.response.statusCode}）`))
-  return result.raw
+  if (!/^data:image\/(png|jpeg|webp);base64,/.test(input.filePath)) throw new Error('图片格式无效，请重新选择')
+  const blob = await (await fetch(input.filePath)).blob()
+  requireLocalDataEpoch(generation)
+  const form = new FormData()
+  form.append('image', blob, `image.${blob.type === 'image/jpeg' ? 'jpg' : blob.type === 'image/webp' ? 'webp' : 'png'}`)
+  for (const [key, value] of Object.entries(conversionForm(input))) form.append(key, value)
+  const response = await localRequest(`/api/pattern/${endpoint}`, { method: 'POST', body: form })
+  let raw: Json
+  try { raw = await response.json() } catch { throw new Error('本地服务返回了无法识别的数据') }
+  requireLocalDataEpoch(generation)
+  if (!response.ok) throw new Error(typeof raw.detail === 'string' ? raw.detail : `请求失败（${response.status}）`)
+  return raw
 }
 export async function convertPattern(input: ConvertInput): Promise<ConversionResult> {
   return normalizeConversion(await uploadPattern(input, 'convert'))

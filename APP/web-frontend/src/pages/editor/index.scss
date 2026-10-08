@@ -64,10 +64,10 @@
   box-shadow: 0 var(--lift-3) 0 var(--edge-1);
   overflow: hidden;
 }
-.edit-canvas { display: block; }
+.edit-canvas { display: block; flex: none; touch-action: none; }
 
 .view-controls { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; margin: 22rpx 6rpx 0; }
-.editor .view-controls button {
+.editor .view-controls .web-icon-button {
   display: flex;
   flex: none;
   align-items: center;
@@ -86,7 +86,7 @@
   font-weight: 800;
   line-height: 1;
 }
-.editor .view-controls button[disabled] { border-color: #c4b6ab; background: #ece3da; box-shadow: 0 2rpx 0 #cfc2b7; color: #a3968b; opacity: 1; }
+.editor .view-controls .web-icon-button[disabled] { border-color: #c4b6ab; background: #ece3da; box-shadow: 0 2rpx 0 #cfc2b7; color: #a3968b; opacity: 1; }
 .view-controls text { min-width: 390rpx; color: var(--ink-2); font-size: 23rpx; font-weight: 700; text-align: center; }
 .gesture-hint { display: block; margin: 16rpx 0 8rpx; color: var(--ink-2); font-size: 23rpx; text-align: center; }
 

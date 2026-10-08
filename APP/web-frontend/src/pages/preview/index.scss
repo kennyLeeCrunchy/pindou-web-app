@@ -53,5 +53,6 @@
 .result-image { display: block; width: 100%; border-radius: var(--r-md); }
 .preview-actions { display: flex; gap: 16rpx; padding: 8rpx 0 12rpx; }
 .preview-actions button { flex: 1; min-width: 0; font-size: 27rpx; }
+.preview-export-canvas { position: absolute; left: -100000rpx; top: 0; }
 
 @media (min-width: 700px) { .preview-page { padding-left: 28px; padding-right: 28px; } }

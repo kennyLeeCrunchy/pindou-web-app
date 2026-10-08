@@ -1,4 +1,4 @@
-.works { position: relative; z-index: 1; box-sizing: border-box; width: 100%; min-height: 100vh; max-width: 980px; margin: 0 auto; padding: 34rpx 28rpx calc(60rpx + env(safe-area-inset-bottom)); background: var(--paper); color: var(--ink); }
+.works { position: relative; z-index: 1; box-sizing: border-box; width: 100%; min-height: 100vh; max-width: 980px; margin: 0 auto; padding: 34rpx 28rpx calc(120PX + env(safe-area-inset-bottom)); background: var(--paper); color: var(--ink); }
 .heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12rpx; margin: 10rpx 0 28rpx; }
 .title { font-size: 44rpx; font-weight: 800; }
 .muted { color: var(--ink-2); font-size: 24rpx; }
