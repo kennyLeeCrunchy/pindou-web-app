@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import sys
 import argparse
+import multiprocessing
 import threading
 import time
 import webbrowser
@@ -29,16 +30,28 @@ def open_browser_when_ready(port: int):
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="拼豆本机/可信局域网入口")
     parser.add_argument("--port", type=int, default=5188)
     parser.add_argument("--lan-address")
     parser.add_argument("--lan-network")
     parser.add_argument("--open-browser", action="store_true")
+    parser.add_argument("--configure", action="store_true", help="打开本机 AI 密钥配置窗口")
     args = parser.parse_args()
     if not 1 <= args.port <= 65535:
         parser.error("端口必须在 1–65535 之间")
-    load_dotenv(Path(__file__).resolve().parent / ".env", override=False)
+    frozen = bool(getattr(sys, "frozen", False))
+    config_dir = Path(sys.executable).parent if frozen else Path(__file__).resolve().parent
+    config_path = config_dir / ".env"
+    load_dotenv(config_path, override=False)
+    if frozen:
+        os.environ.setdefault("PINDOU_RUNTIME_DIR", str(config_dir / "runtime"))
+    if args.configure or frozen and not os.getenv("DASHSCOPE_API_KEY", "").strip():
+        from desktop_settings import configure_api_key
+        accepted = configure_api_key(config_path)
+        if args.configure or not accepted:
+            raise SystemExit(0)
     from app.local_app import create_local_app
     try:
         application = create_local_app(port=args.port, lan_address=args.lan_address, lan_network=args.lan_network)
@@ -51,7 +64,7 @@ if __name__ == "__main__":
     if args.lan_address:
         print(f"同一局域网访问：http://{args.lan_address}:{args.port}，允许网段 {application.lan_network}", flush=True)
     print("AI 密钥：" + ("已配置，真实生图效果待验证" if configured else "未配置，主体和风景直转仍可使用"), flush=True)
-    if args.open_browser:
+    if args.open_browser or frozen:
         threading.Thread(target=open_browser_when_ready, args=(args.port,), daemon=True).start()
     uvicorn.run(application, host="0.0.0.0" if args.lan_address else "127.0.0.1",
                 port=args.port, access_log=False, proxy_headers=False)

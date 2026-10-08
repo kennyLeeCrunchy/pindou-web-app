@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import secrets
+import sys
 from ipaddress import ip_address, ip_network
 from pathlib import Path
 
@@ -76,5 +77,6 @@ def create_local_app(frontend_dir: Path | None = None, port: int = 5188,
     os.environ["PINDOU_WEB_ACCESS_TOKEN"] = secrets.token_urlsafe(48)
     os.environ["PINDOU_QUOTA_BACKEND"] = "local"
     from app.api_main import app
-    directory = frontend_dir or Path(__file__).resolve().parents[2] / "web-frontend" / "dist"
+    root = Path(sys._MEIPASS) if getattr(sys, "frozen", False) else Path(__file__).resolve().parents[2]
+    directory = frontend_dir or root / "web-frontend" / "dist"
     return LocalApplication(app, directory, port, lan_address, lan_network)
