@@ -4,13 +4,13 @@
 
 ## 下载即用（Windows）
 
-1. 打开 [Windows 便携版 Release](https://github.com/kennyLeeCrunchy/pindou-web-app/releases/tag/v0.1.0)，下载 **pindou-web-windows-x64.zip**。
+1. 打开 [Windows 版 Release](https://github.com/kennyLeeCrunchy/pindou-web-app/releases/tag/v0.1.0)，下载 **pindou-web-windows-x64.zip**。
 2. 右键“全部提取”，将整个文件夹解压到可写目录。
 3. 双击 **Pindou.exe**，浏览器会自动打开 `http://localhost:5188`。
 
 支持 Windows 10/11 x64，无需安装 Python 或 Node.js。不要在压缩包内直接运行，也不要删除 `_internal` 文件夹。服务窗口保持打开，关闭窗口或按 Ctrl+C 即停止运行。若 5188 已被占用，先关闭原来的拼豆服务。
 
-程序未签名，Windows 可能显示未知发布者提示。请从本仓库 Release 下载，并使用同页的 `SHA256SUMS.txt` 校验安装包。详细使用说明见 [便携版说明](docs/PORTABLE.md)。
+程序未签名，Windows 可能显示未知发布者提示。请从本仓库 Release 下载，并使用同页的 `SHA256SUMS.txt` 校验安装包。详细使用说明见 [Windows 版说明](docs/WINDOWS.md)。
 
 ## AI 密钥配置
 
@@ -35,7 +35,7 @@ AI 重绘会将图片和描述发送至阿里云，使用该 Key 所属账户的
 
 作品和偏好保存在当前浏览器、当前网址的本地存储中。不同电脑、浏览器、地址或端口之间不会自动同步；清理浏览器网站数据会删除本地作品，请及时导出。已下载的 PNG 文件独立保存在电脑中。
 
-便携版默认仅允许本机访问。AI 尝试次数在当前服务进程内共用、重启清空，不会重置阿里云余额，也不是正式的个人每日额度。
+Windows 版默认仅允许本机访问。AI 尝试次数在当前服务进程内共用、重启清空，不会重置阿里云余额，也不是正式的个人每日额度。
 
 目前没有公开注册登录、云端作品同步或 Cloudflare Pages/Tunnel 部署。本包不含大型 BiRefNet 抠图模型权重，使用现有算法及可用的白底回退；复杂背景、遮挡和人物重绘效果可能不稳定。尚未完成不同 Windows 电脑的兼容性验收。
 
