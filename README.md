@@ -10,7 +10,7 @@
 
 支持 Windows 10/11 x64，无需安装 Python 或 Node.js。不要在压缩包内直接运行，也不要删除 `_internal` 文件夹。服务窗口保持打开，关闭窗口或按 Ctrl+C 即停止运行。若 5188 已被占用，先关闭原来的拼豆服务。
 
-程序未签名，Windows 可能显示未知发布者提示。请从本仓库 Release 下载，并使用同页的 `SHA256SUMS.txt` 校验安装包。详细使用说明见 [Windows 版说明](docs/WINDOWS.md)。
+程序未签名，Windows 可能显示未知发布者提示。请从本仓库 Release 下载，并使用同页的 `SHA256SUMS.txt` 校验安装包。
 
 ## AI 密钥配置
 
@@ -50,14 +50,13 @@ python -m pip install -r APP/web-backend/requirements.txt
 
 打开 `http://localhost:5188`。首次启动会安装前端 npm 依赖并构建，后续会检测前端变更。更新前端后也可显式执行 `./start-local.ps1 -Rebuild`。
 
-需要局域网访问时，双击仓库中的 **启动Web.cmd**，或执行 `./start-lan.ps1`。首次防火墙配置需要 Windows 管理员确认，手机须连接同一可信 Wi-Fi；见 [局域网运行](docs/LAN.md)。源码模式的 AI 配置保存在 `APP/web-backend/.env`，也可在该目录运行 `python run_local.py --configure` 打开密钥窗口。
+需要局域网访问时，双击仓库中的 **启动Web.cmd**，或执行 `./start-lan.ps1`。首次防火墙配置需要 Windows 管理员确认，手机须连接同一可信 Wi-Fi。源码模式的 AI 配置保存在 `APP/web-backend/.env`，也可在该目录运行 `python run_local.py --configure` 打开密钥窗口。
 
 源码目录：
 
 ```text
 APP/web-frontend/   React / Taro H5 前端
 APP/web-backend/    FastAPI 后端与图纸算法
-docs/              使用、配置与部署说明
 ```
 
 此仓库包含 Web 应用的前后端源码。

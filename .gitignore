@@ -34,5 +34,5 @@ __pycache__/
 releases/**/code/
 releases/**/miniprogram-weapp/
 
-# Local technical report
-/docs/technical-route/
+# Local documentation
+/docs/
