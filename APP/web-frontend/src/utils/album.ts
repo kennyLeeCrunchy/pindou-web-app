@@ -1,5 +1,5 @@
 /** Download the PNG after an explicit save action. */
-export async function saveImageToAlbum(filePath: string): Promise<boolean> {
+export async function downloadPatternImage(filePath: string): Promise<boolean> {
   if (!/^data:image\/png;base64,/.test(filePath)) throw new Error('导出图片格式无效')
   const link = document.createElement('a')
   link.href = filePath

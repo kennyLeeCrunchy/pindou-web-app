@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 import os
+import asyncio
+import json
 import secrets
 import sys
 from ipaddress import ip_address, ip_network
 from pathlib import Path
 
+from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.exceptions import HTTPException
 from starlette.staticfiles import StaticFiles
@@ -15,9 +18,12 @@ from starlette.staticfiles import StaticFiles
 class LocalApplication:
     def __init__(self, api, frontend_dir: Path, port: int, lan_address: str | None = None,
                  lan_network: str | None = None):
+        self.config_path = Path(os.getenv("PINDOU_CONFIG_PATH", Path(__file__).resolve().parents[1] / ".env"))
+        self.shutdown = None
         self.api = api
         self.files = StaticFiles(directory=str(frontend_dir), html=True)
         self.hosts = {f"localhost:{port}", f"127.0.0.1:{port}"}
+        self.lan_url = f"http://{lan_address}:{port}" if lan_address else None
         self.lan_network = None
         if lan_address or lan_network:
             address = ip_address(lan_address or "")
@@ -58,6 +64,36 @@ class LocalApplication:
         if scope["path"].startswith("/api/"):
             if scope["path"] != "/api/health" and headers.get(b"x-pindou-local") != b"1":
                 await JSONResponse({"detail": "请从本地应用页面访问"}, status_code=403)(scope, receive, send)
+                return
+            if scope["path"] == "/api/local/info" and scope["method"] == "GET":
+                await JSONResponse({"lan_url": self.lan_url, "desktop_version": "0.2.0"}, headers={"Cache-Control": "no-store"})(scope, receive, send)
+                return
+            if scope["path"].startswith("/api/local/"):
+                if peer not in {"127.0.0.1", "::1", "testclient"}:
+                    await JSONResponse({"detail": "模型配置与退出操作只能在服务器电脑上进行"}, 403)(scope, receive, send)
+                    return
+                from app.local_settings import public_config, save_config
+                status, result = 200, None
+                try:
+                    if scope["path"] == "/api/local/settings" and scope["method"] == "GET":
+                        result = public_config()
+                    elif scope["path"] == "/api/local/settings" and scope["method"] == "PUT":
+                        body = bytearray()
+                        async for chunk in Request(scope, receive).stream():
+                            body.extend(chunk)
+                            if len(body) > 8192:
+                                raise ValueError("配置内容过大")
+                        result = save_config(self.config_path, json.loads(body))
+                    elif scope["path"] == "/api/local/shutdown" and scope["method"] == "POST" and self.shutdown:
+                        result = {"stopped": True}
+                        asyncio.get_running_loop().call_later(0.3, self.shutdown)
+                    else:
+                        status, result = 404, {"detail": "操作不存在"}
+                except (ValueError, UnicodeDecodeError):
+                    status, result = 400, {"detail": "配置无效，请检查字段与 URL；更换接口或 URL 时须填写对应密钥"}
+                except OSError:
+                    status, result = 500, {"detail": "无法保存，请将应用解压到可写目录"}
+                await JSONResponse(result, status_code=status, headers={"Cache-Control": "no-store"})(scope, receive, send)
                 return
             # Never send this secret to the browser. Only accepted trusted requests
             # enter the standard API with the launcher's ephemeral credential.

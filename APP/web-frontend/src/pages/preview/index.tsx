@@ -1,4 +1,4 @@
-import { Button, Image, ScrollView, Text, View } from '@tarojs/components'
+import { Button, ScrollView, Text, View } from '@tarojs/components'
 import Taro, { useDidHide, useDidShow } from '@tarojs/taro'
 import { useRef, useState } from 'react'
 import PatternGrid from '../../components/PatternGrid'
@@ -6,7 +6,7 @@ import StatusPanel from '../../components/StatusPanel'
 import type { ConversionResult, PatternVariant, Work } from '../../shared/types'
 import { getWork, saveWork, flushWorks } from '../../store/works'
 import { toUserMessage } from '../../utils/error'
-import { saveImageToAlbum } from '../../utils/album'
+import { downloadPatternImage } from '../../utils/album'
 import { countCells, getLatestPattern, totalBeads } from '../../utils/pattern'
 import { createPatternImage, patternExportLayout } from '../../utils/patternExport'
 import './index.scss'
@@ -59,7 +59,7 @@ export default function PreviewPage() {
     try {
       await new Promise<void>(resolve => Taro.nextTick(() => resolve()))
       const imagePath = await createPatternImage('preview-export', exportPattern)
-      if (!await saveImageToAlbum(imagePath)) return
+      if (!await downloadPatternImage(imagePath)) return
       await Taro.showToast({ title: '已开始下载', icon: 'success' })
     } catch (reason) { setError(toUserMessage(reason)) }
     finally { setSaving(false) }
@@ -84,7 +84,7 @@ export default function PreviewPage() {
       <Text className='preview-hint'>{size}×{size} · {variant.counts.length} 色 · {totalBeads(variant)} 颗</Text>
     </View>
     <View className='preview-card'><Text className='section-title'>处理过程</Text><View className='stage-list'>{stages.map(([label, url]) => url
-      ? <View key={label} className='stage'><Image src={url} mode='aspectFit' onError={event => setStageErrors(prev => ({ ...prev, [label]: event.detail?.errMsg || '加载失败' }))} /><Text>{label}</Text>{stageErrors[label] && <Text className='stage-error'>{stageErrors[label]}</Text>}</View>
+      ? <View key={label} className='stage'><img src={url} alt={label} onError={() => setStageErrors(prev => ({ ...prev, [label]: '图片加载失败' }))} /><Text>{label}</Text>{stageErrors[label] && <Text className='stage-error'>{stageErrors[label]}</Text>}</View>
       : <View key={label} className='stage stage-missing'><Text>{label}暂无图片</Text></View>)}</View></View>
     <View className='preview-card'><Text className='section-title'>色号与颗数</Text><ScrollView scrollY className='palette-list'>
       {variant.counts.map(item => <View className='palette-item' key={item.code}><View className='palette-swatch' style={{ backgroundColor: item.hex }} /><View className='palette-name'><Text>{item.code}</Text><Text>{item.name}</Text></View><Text className='palette-count'>{item.count} 颗</Text></View>)}

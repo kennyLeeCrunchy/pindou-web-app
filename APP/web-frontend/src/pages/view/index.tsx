@@ -8,7 +8,7 @@ import { createPatternImage, patternExportLayout } from '../../utils/patternExpo
 import { canvasCellAt, canvasPointFromClient, type CanvasViewport } from '../../utils/canvasTouch'
 import { BRAND_LABEL } from '../../data/palettes'
 import { toUserMessage } from '../../utils/error'
-import { saveImageToAlbum } from '../../utils/album'
+import { downloadPatternImage } from '../../utils/album'
 import './index.scss'
 
 const INITIAL_EXTENT = 26
@@ -34,6 +34,7 @@ export default function ViewPage() {
   const [rowStart, setRowStart] = useState(0)
   const [columnStart, setColumnStart] = useState(0)
   const [boardSize, setBoardSize] = useState(290)
+  const [pixelDensity, setPixelDensity] = useState(window.devicePixelRatio || 1)
   const [boardMeasured, setBoardMeasured] = useState(false)
   const [isTablet, setIsTablet] = useState(false)
   const [highlightMode, setHighlightMode] = useState(false)
@@ -73,7 +74,7 @@ export default function ViewPage() {
       gesture.current = null
     }
     updateViewport(window.innerWidth)
-    const onResize = () => updateViewport(window.innerWidth)
+    const onResize = () => { setPixelDensity(window.devicePixelRatio || 1); updateViewport(window.innerWidth) }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
@@ -127,9 +128,9 @@ export default function ViewPage() {
       if (!cancelled) setError(toUserMessage(reason))
     })
     return () => { cancelled = true }
-  }, [work, pageVisible, boardMeasured, rowStart, columnStart, extent, boardSize, visibleRows, isTablet, highlightMode, highlightCode, selection])
+  }, [work, pageVisible, boardMeasured, rowStart, columnStart, extent, boardSize, visibleRows, isTablet, pixelDensity, highlightMode, highlightCode, selection])
 
-  if (!work) return <View className='viewer-state'><Text>作品不存在或已被删除</Text><button type='button' onClick={() => Taro.navigateBack()}>返回</button></View>
+  if (!work) return <View className='viewer-state'><Text>作品不存在或已被删除</Text><button type='button' className='viewer-back-button' onClick={() => Taro.navigateBack()}>返回</button></View>
 
   const maxExtent = work.width
   const minExtent = Math.min(MIN_EXTENT, maxExtent)
@@ -265,7 +266,7 @@ export default function ViewPage() {
     try {
       await new Promise<void>(resolve => Taro.nextTick(() => resolve()))
       const imagePath = await createPatternImage('view-export-canvas', work)
-      if (!await saveImageToAlbum(imagePath)) return
+      if (!await downloadPatternImage(imagePath)) return
       await Taro.showToast({ title: '已开始下载', icon: 'success' })
     } catch (reason) { setError(toUserMessage(reason)) }
     finally { setBusy(false) }

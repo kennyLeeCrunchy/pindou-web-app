@@ -7,6 +7,11 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, request, response, code, message, headers, new_url):
+        return None
+
+
 class DashScopeImageEditClient:
     def __init__(
         self,
@@ -184,10 +189,13 @@ class DashScopeImageEditClient:
     ) -> dict:
         request = urllib.request.Request(url, data=body, headers=headers, method=method)
         try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:
-                return json.loads(response.read().decode("utf-8"))
+            with urllib.request.build_opener(_NoRedirect()).open(request, timeout=timeout) as response:
+                body = response.read(17 * 1024 * 1024 + 1)
+                if len(body) > 17 * 1024 * 1024:
+                    raise ValueError("模型响应超过大小上限")
+                return json.loads(body.decode("utf-8"))
         except HTTPError as exc:
-            detail = exc.read().decode("utf-8", errors="replace")
+            detail = exc.read(65536).decode("utf-8", errors="replace")
             raise RuntimeError(f"DashScope HTTP {exc.code}: {detail}") from exc
         except URLError as exc:
             raise RuntimeError(f"无法连接 DashScope：{exc.reason}") from exc

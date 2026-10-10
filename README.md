@@ -4,21 +4,23 @@
 
 ## 下载即用（Windows）
 
-1. 打开 [Windows 版 Release](https://github.com/kennyLeeCrunchy/pindou-web-app/releases/tag/v0.1.0)，下载 **pindou-web-windows-x64.zip**。
+1. 打开 [Windows 版 Release](https://github.com/kennyLeeCrunchy/pindou-web-app/releases/tag/v0.2.0)，下载 **pindou-web-windows-x64.zip**。
 2. 右键“全部提取”，将整个文件夹解压到可写目录。
 3. 双击 **Pindou.exe**，浏览器会自动打开 `http://localhost:5188`。
 
-支持 Windows 10/11 x64，无需安装 Python 或 Node.js。不要在压缩包内直接运行，也不要删除 `_internal` 文件夹。服务窗口保持打开，关闭窗口或按 Ctrl+C 即停止运行。若 5188 已被占用，先关闭原来的拼豆服务。
+支持 Windows 10/11 x64，无需安装 Python 或 Node.js。不要在压缩包内直接运行，也不要删除 `_internal` 文件夹。后台运行，不弹终端。在电脑网页“设置 → 退出应用”停止服务；关闭浏览器不会停止服务。升级前请先退出旧版。
 
 程序未签名，Windows 可能显示未知发布者提示。请从本仓库 Release 下载，并使用同页的 `SHA256SUMS.txt` 校验安装包。详细使用说明见 [Windows 版说明](WINDOWS.md)。
 
-## AI 密钥配置
+## 模型配置与手机访问
 
-首次启动会弹出密钥配置窗口。照片 AI 重绘使用 **阿里云百炼北京地域 API Key**，填入自己的 `sk-` 开头的 Key，点击“保存”。也可以选择“暂不配置”，先使用直接转图纸。
+在电脑网页 **设置 → AI 模型配置** 填写供应商、接口类型、模型、基础 URL 和自己的 API Key。默认 **阿里云百炼北京 / DashScope / qwen-image-3.0-pro**。支持 OpenAI 兼容的图片编辑接口，不能使用纯聊天接口；具体请求与返回格式见 [Windows 版说明](WINDOWS.md)，协议参考 [官方图片编辑接口](https://developers.openai.com/api/reference/resources/images/methods/edit)。
 
-以后双击 **配置 AI 密钥.cmd** 即可修改；保存后关闭服务并重新启动。密钥只保存在使用者电脑的 `.env` 文件中，不回传开发者、不进入前端页面，也不随公开安装包分发。不要将配置后的 `.env` 或 `runtime` 文件夹分享给他人。
+保存后下一次重绘立即生效。密钥只保存在服务器电脑的 `.env` 文件，不回显到网页，也不随安装包分发。更换 URL 或接口时须填写对应供应商的密钥；不要分享 `.env` 或 `runtime`。
 
-AI 重绘会将图片和描述发送至阿里云，使用该 Key 所属账户的余额与模型权限。密钥格式检查不能证明 Key 有效或余额充足；模型生成的主体、构图和相似度需要使用者检查。
+双击 EXE 默认启动同一私有网段的局域网服务，首页显示手机访问地址。保持电脑和手机连接同一个网络、电脑应用持续运行；首次 Windows 防火墙管理员授权需允许。手机不能修改模型配置或退出服务，同网段设备可使用你的 AI 额度，因此只在可信网络中使用。只需本机时可运行 `Pindou.exe --local-only`。
+
+供应商名称仅用于显示；接口类型、URL 和模型决定实际请求。字段格式由代码校验，密钥有效性、模型权限与余额尚未通过付费调用验证；重绘效果仍需人工检查。
 
 ## 功能
 
@@ -35,7 +37,7 @@ AI 重绘会将图片和描述发送至阿里云，使用该 Key 所属账户的
 
 作品和偏好保存在当前浏览器、当前网址的本地存储中。不同电脑、浏览器、地址或端口之间不会自动同步；清理浏览器网站数据会删除本地作品，请及时导出。已下载的 PNG 文件独立保存在电脑中。
 
-Windows 版默认仅允许本机访问。AI 尝试次数在当前服务进程内共用、重启清空，不会重置阿里云余额，也不是正式的个人每日额度。
+Windows 版默认允许本机及检测到的私有网段访问。AI 尝试次数在当前服务进程内共用、重启清空，不会重置供应商余额，也不是正式的个人每日额度。
 
 目前没有公开注册登录、云端作品同步或 Cloudflare Pages/Tunnel 部署。本包不含大型 BiRefNet 抠图模型权重，使用现有算法及可用的白底回退；复杂背景、遮挡和人物重绘效果可能不稳定。尚未完成不同 Windows 电脑的兼容性验收。
 
@@ -50,7 +52,7 @@ python -m pip install -r APP/web-backend/requirements.txt
 
 打开 `http://localhost:5188`。首次启动会安装前端 npm 依赖并构建，后续会检测前端变更。更新前端后也可显式执行 `./start-local.ps1 -Rebuild`。
 
-需要局域网访问时，双击仓库中的 **启动Web.cmd**，或执行 `./start-lan.ps1`。首次防火墙配置需要 Windows 管理员确认，手机须连接同一可信 Wi-Fi。源码模式的 AI 配置保存在 `APP/web-backend/.env`，也可在该目录运行 `python run_local.py --configure` 打开密钥窗口。
+需要局域网访问时，双击仓库中的 **启动Web.cmd**，或执行 `./start-lan.ps1`。首次防火墙配置需要 Windows 管理员确认，手机须连接同一可信 Wi-Fi。源码模式的 AI 配置保存在 `APP/web-backend/.env`，配置可在电脑端网页设置修改。
 
 源码目录：
 
@@ -70,7 +72,7 @@ npm run test:contract
 npm run build
 
 # 在 APP/web-backend 中
-python -m unittest tests.test_local_app tests.test_desktop_settings -v
+python -m unittest tests.test_local_app tests.test_local_settings -v
 
 # 回到仓库根目录；需要安装 PyInstaller
 python -m pip install pyinstaller

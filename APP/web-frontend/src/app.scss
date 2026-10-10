@@ -111,8 +111,10 @@ canvas { display: block; }
   box-shadow: 0 var(--lift-1) 0 var(--edge-red);
 }
 
-.raised-button[disabled],
-.primary-button[disabled] {
+.raised-button[disabled='true'],
+.primary-button[disabled='true'],
+.raised-button:disabled,
+.primary-button:disabled {
   color: #fffaf7;
   background: #cbbfba;
   box-shadow: 0 var(--lift-3) 0 #a89b96;

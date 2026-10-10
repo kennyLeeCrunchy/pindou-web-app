@@ -36,7 +36,7 @@
 
 .stage-list { display: flex; gap: 12rpx; }
 .stage { flex: 1; min-width: 0; color: var(--ink-2); text-align: center; font-size: 22rpx; }
-.stage image { display: block; width: 100%; height: 170rpx; border: 2rpx solid #e0cdbc; border-radius: var(--r-sm); background: #f6ece2; }
+.stage img { display: block; width: 100%; height: 170rpx; box-sizing: border-box; object-fit: contain; object-position: center; border: 2rpx solid #e0cdbc; border-radius: var(--r-sm); background: #f6ece2; }
 .stage text { display: block; margin-top: 6rpx; }
 .stage-missing { display: flex; align-items: center; justify-content: center; color: var(--muted); }
 .stage-error { margin-top: 4rpx; color: #a82e28; font-size: 20rpx; word-break: break-all; }

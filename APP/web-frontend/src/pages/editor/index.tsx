@@ -8,7 +8,7 @@ import { canvasCellAt, canvasPointFromClient, type CanvasPoint, type CanvasViewp
 import type { Work } from '../../shared/types'
 import { getWork, saveWork, flushWorks } from '../../store/works'
 import { toUserMessage } from '../../utils/error'
-import { saveImageToAlbum } from '../../utils/album'
+import { downloadPatternImage } from '../../utils/album'
 import { editCell } from '../../utils/edit'
 import { getEditorHistory, saveEditorHistory, flushEditorHistory, type CellChange } from '../../store/editorHistory'
 import { countCells } from '../../utils/pattern'
@@ -42,6 +42,7 @@ export default function EditorPage() {
   const [columnStart, setColumnStart] = useState(0)
   const [extent, setExtent] = useState(INITIAL_EXTENT)
   const [boardSize, setBoardSize] = useState(FALLBACK_BOARD)
+  const [pixelDensity, setPixelDensity] = useState(window.devicePixelRatio || 1)
   const [boardMeasured, setBoardMeasured] = useState(false)
   const [isTablet, setIsTablet] = useState(false)
   const [isTwoFingerGesture, setIsTwoFingerGesture] = useState(false)
@@ -89,7 +90,7 @@ export default function EditorPage() {
       setIsTwoFingerGesture(false)
     }
     updateViewport(window.innerWidth)
-    const onResize = () => updateViewport(window.innerWidth)
+    const onResize = () => { setPixelDensity(window.devicePixelRatio || 1); updateViewport(window.innerWidth) }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
@@ -125,9 +126,9 @@ export default function EditorPage() {
       if (!cancelled) setError(toUserMessage(reason))
     })
     return () => { cancelled = true }
-  }, [work, pageVisible, showPalette, boardMeasured, rowStart, columnStart, extent, boardSize, visibleRows, isTablet])
+  }, [work, pageVisible, showPalette, boardMeasured, rowStart, columnStart, extent, boardSize, visibleRows, isTablet, pixelDensity])
   if (!work) {
-    return <View className='state'><Text>作品不存在或已被删除</Text><button type='button' onClick={() => Taro.navigateBack()}>返回</button></View>
+    return <View className='state'><Text>作品不存在或已被删除</Text><button type='button' className='editor-back-button' onClick={() => Taro.navigateBack()}>返回</button></View>
   }
   const counts = countCells(work.cells, work.palette)
   const beads = counts.reduce((sum, item) => sum + item.count, 0)
@@ -260,7 +261,7 @@ export default function EditorPage() {
       flushWorks()
       const imagePath = await createPatternImage('export-canvas', saved)
       setWork(saved)
-      if (!await saveImageToAlbum(imagePath)) return
+      if (!await downloadPatternImage(imagePath)) return
       await Taro.showToast({ title: '已开始下载', icon: 'success' })
     } catch (reason) { setError(toUserMessage(reason)) }
     finally { setBusy(false) }
@@ -270,7 +271,7 @@ export default function EditorPage() {
     {pageVisible && !showPalette && <View className='editor-board'><canvas id='edit-canvas' className='edit-canvas' style={{ width: '100%', height: `${boardSize * ROW_RATIO(isTablet) + AXIS_PAD * 2}px` }} onMouseDown={event => { event.preventDefault(); touchStart({ touches: [event] }) }} onMouseMove={event => { if (event.buttons === 1) touchMove({ touches: [event] }) }} onMouseUp={event => touchEnd({ touches: [], changedTouches: [event] })} onMouseLeave={() => { gesture.current = null }} onTouchStart={touchStart} onTouchMove={touchMove} onTouchEnd={touchEnd} onTouchCancel={() => { gesture.current = null; setIsTwoFingerGesture(false) }} /></View>}
     <View className='view-controls'><button type='button' className='web-icon-button' disabled={extent >= maxExtent} onClick={() => zoom(extent * 1.5)} aria-label='缩小'><View className='pixel-glyph pixel-glyph--minus' /></button><Text>{rowStart + 1}–{Math.min(work.height, rowStart + renderedRows)} 行 · {columnStart + 1}–{Math.min(work.width, columnStart + extent)} 列</Text><button type='button' className='web-icon-button' disabled={extent <= MIN_EXTENT} onClick={() => zoom(extent / 1.5)} aria-label='放大'><View className='pixel-glyph pixel-glyph--plus' /></button></View>
     <Text className='gesture-hint'>鼠标点按填色 · 按钮缩放 · 触屏支持双指拖动与缩放</Text>
-    <View className='palette-heading'><Text className='section-title'>选择颜色</Text><button type='button' onClick={() => setShowPalette(true)}>{work.brand || 'Artkal'} 全色卡 · {brandColors.length} 色</button></View><ScrollView scrollX className='palette'><View className='palette-row'>
+    <View className='palette-heading'><Text className='section-title'>选择颜色</Text><button type='button' className='palette-open-button' onClick={() => setShowPalette(true)}>{work.brand || 'Artkal'} 全色卡 · {brandColors.length} 色</button></View><ScrollView scrollX className='palette'><View className='palette-row'>
       <View className={`swatch ${color === null ? 'active' : ''}`} onClick={() => setColor(null)}><View className='dot empty-dot' /><Text>清空</Text></View>
       {work.palette.map(item => <View key={item.code} className={`swatch ${color === item.code ? 'active' : ''}`} onClick={() => setColor(item.code)}><View className='dot' style={{ background: item.hex }} /><Text>{item.code}</Text></View>)}
     </View></ScrollView>

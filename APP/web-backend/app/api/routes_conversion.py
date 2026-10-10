@@ -22,6 +22,8 @@ from app.core.color_budget import advise_color_budget
 from app.core.exporter import render_pattern_png
 from app.core.image_pipeline import normalize_image_as_data_url, prepare_subject_image
 from app.core.image_edit_client import DashScopeImageEditClient
+from app.core.openai_image_edit import OpenAIImageEditClient
+from app.local_settings import model_config
 from app.core.image_edit_prompts import build_xhs_edit_prompt
 from app.core.palette import load_mard_palette, load_palette, load_presets, resolve_palette
 from app.core.schemas import pattern_counts_for_ui
@@ -66,11 +68,11 @@ def _palette(brand: str, preset: str) -> list:
     raise ValueError("只支持 Artkal 或 Mard 的完整 221 色卡")
 
 
-def download_image(url: str, timeout: float) -> bytes:
+def download_image(url: str, timeout: float, trusted_base_url: str = "") -> bytes:
     from urllib.parse import urlsplit
     parsed = urlsplit(url)
     hostname = (parsed.hostname or "").lower()
-    if parsed.scheme != "https" or parsed.username or parsed.password or parsed.port not in {None, 443} or not hostname.endswith((".aliyuncs.com", ".aliyun.com")):
+    if parsed.scheme != "https" or parsed.username or parsed.password or parsed.port not in {None, 443} or not (hostname.endswith((".aliyuncs.com", ".aliyun.com", ".blob.core.windows.net")) or trusted_base_url and parsed.netloc == urlsplit(trusted_base_url).netloc):
         raise ValueError("模型返回了不支持的图片地址")
     with httpx.Client(timeout=timeout, follow_redirects=False) as client:
         with client.stream("GET", url) as response:
@@ -105,10 +107,17 @@ def _build_result(source_bytes: bytes, options: dict, deadline: float) -> dict:
         model_inputs = normalize_image_as_data_url(source_bytes)
         model_input_image_count = 1
         settings = get_settings()
-        editor = DashScopeImageEditClient(api_key=settings.dashscope_api_key or "", base_url=settings.dashscope_base_url, model=os.getenv("PINDOU_WEB_I2I_MODEL", "qwen-image-3.0-pro"), output_size="1024*1024")
+        config = options.get("model_config") or model_config()
+        client_class = OpenAIImageEditClient if config["protocol"] == "openai" else DashScopeImageEditClient
+        editor = client_class(api_key=config["api_key"], base_url=config["base_url"], model=config["model"])
         remaining()
         _, remote_url = editor.edit(model_inputs, prompt_text, negative_prompt=edit_prompt.negative, timeout=min(settings.dashscope_i2i_timeout, remaining(15)))
-        pattern_bytes = download_image(remote_url, timeout=min(8, remaining(8)))
+        if isinstance(remote_url, bytes):
+            pattern_bytes = remote_url
+        elif config["protocol"] == "openai":
+            pattern_bytes = download_image(remote_url, timeout=min(8, remaining(8)), trusted_base_url=config["base_url"])
+        else:
+            pattern_bytes = download_image(remote_url, timeout=min(8, remaining(8)))
         ai_image = _open_image(pattern_bytes)
         pattern_bytes = _png_bytes(ai_image)
     if mode != "scene_direct":
@@ -237,10 +246,12 @@ async def convert_pattern(request: Request, image: UploadFile = File(...), mode:
                 _open_image(source_bytes)
             except (ValueError, UnidentifiedImageError, Image.DecompressionBombError):
                 raise HTTPException(400, "图片处理失败，请检查图片格式和尺寸")
-            if not get_settings().dashscope_api_key:
-                raise HTTPException(503, "服务端模型配置缺失")
+            if not model_config()["api_key"]:
+                raise HTTPException(503, "请在设置页填写模型 API Key")
             await run_in_threadpool(check_rate_limit, user_id, request_id)
         options = dict(user_id=user_id, request_id=request_id, mode=mode, framing_mode=framing_mode, subject_target=subject_target, prompt=prompt, brand=brand, preset=preset, colors=colors, color_selection=selection, operation="prepare" if request.url.path == "/api/pattern/prepare" else "convert")
+        if mode == "subject_cartoon":
+            options["model_config"] = model_config()
         result = await run_in_threadpool(_run_conversion, source_bytes, options, deadline)
         response = JSONResponse(result)
         if len(response.body) > MAX_RESPONSE_BYTES:

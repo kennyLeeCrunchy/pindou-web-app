@@ -19,8 +19,15 @@ $webRuleName = "Pindou-Web-LAN-$Port"
 $webRuleDescription = "Pindou LAN $LanAddress`:$Port from $webSubnet on $($webInterface[0].InterfaceAlias)"
 $webRule = Get-NetFirewallRule -Name $webRuleName -ErrorAction SilentlyContinue
 if ($CheckOnly) {
+    $webAddressFilter = if ($webRule) { $webRule | Get-NetFirewallAddressFilter }
+    $webPortFilter = if ($webRule) { $webRule | Get-NetFirewallPortFilter }
+    $webInterfaceFilter = if ($webRule) { $webRule | Get-NetFirewallInterfaceFilter }
     return [bool]($webRule -and $webRule.Enabled -eq 'True' -and $webRule.Action -eq 'Allow' -and
-        $webRule.Direction -eq 'Inbound' -and $webRule.Description -eq $webRuleDescription)
+        $webRule.Direction -eq 'Inbound' -and $webRule.Description -eq $webRuleDescription -and
+        @($webAddressFilter.LocalAddress).Count -eq 1 -and $webAddressFilter.LocalAddress -eq $LanAddress -and
+        @($webAddressFilter.RemoteAddress).Count -eq 1 -and $webAddressFilter.RemoteAddress -eq $webSubnet -and
+        $webPortFilter.Protocol -eq 'TCP' -and $webPortFilter.LocalPort -eq [string]$Port -and
+        $webInterfaceFilter.InterfaceAlias -eq $webInterface[0].InterfaceAlias)
 }
 if ($webRule) {
     Set-NetFirewallRule -Name $webRuleName -Description $webRuleDescription -Enabled True -Direction Inbound -Action Allow -Profile Any `

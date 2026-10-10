@@ -29,14 +29,6 @@ export const axisPadFor = (cellSize: number) => Math.max(18, Math.round(cellSize
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value))
 
-let pixelRatio: number | undefined
-function dpr(): number {
-  if (!pixelRatio) {
-    pixelRatio = window.devicePixelRatio || 1
-  }
-  return pixelRatio
-}
-
 /* type='2d' canvas node via one selector query per redraw — the legacy
    interface paid one JS->native bridge call per draw primitive (thousands per
    frame), which is what made redraws crawl. The first query can race the
@@ -56,7 +48,6 @@ const drawSequence = new Map<string, number>()
 
 export function clearCanvasCache() {
   for (const [id, sequence] of drawSequence) drawSequence.set(id, sequence + 1)
-  pixelRatio = undefined
 }
 
 function codeColor(hex: string | undefined): string {
@@ -64,7 +55,7 @@ function codeColor(hex: string | undefined): string {
   if (!match) return 'rgba(75,68,62,0.54)'
   const [, red, green, blue] = match
   const luminance = (Number.parseInt(red, 16) * 0.2126 + Number.parseInt(green, 16) * 0.7152 + Number.parseInt(blue, 16) * 0.0722) / 255
-  return luminance < 0.38 ? 'rgba(245,242,238,0.62)' : 'rgba(70,64,58,0.54)'
+  return luminance < 0.38 ? '#ffffff' : '#332a24'
 }
 
 /** Draws one frame and returns the canvas node (pass it to canvasToTempFilePath). */
@@ -85,7 +76,7 @@ export async function drawCells(
   if (!canvas) return undefined
   if (drawSequence.get(canvasId) !== token) return undefined
   const pad = options.axes ? (options.axisPad ?? axisPadFor(cellSize)) : 0
-  const scale = options.scale ?? dpr()
+  const scale = options.scale ?? (window.devicePixelRatio || 1)
   const cssWidth = extent * cellSize
   const cssHeight = options.bufferCssHeight ?? rowCount * cellSize
   if (options.bufferCssHeight !== undefined) rowCount = Math.ceil(cssHeight / cellSize - 1e-9)
@@ -97,6 +88,7 @@ export async function drawCells(
   }
   const ctx = canvas.getContext('2d')
   ctx.setTransform(scale, 0, 0, scale, 0, 0)
+  ctx.imageSmoothingEnabled = false
   if (options.sheet) {
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, options.sheet.width, options.sheet.height)

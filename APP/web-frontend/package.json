@@ -1,6 +1,6 @@
 {
   "name": "pindou-web-frontend",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "拼豆助手本地 Web 应用",
   "scripts": {

@@ -1,6 +1,6 @@
 import { useDidShow } from '@tarojs/taro'
 import Taro from '@tarojs/taro'
-import { Button, Image, Text, View } from '@tarojs/components'
+import { Button, Text, View } from '@tarojs/components'
 import { useEffect, useState } from 'react'
 import type { Work } from '../../shared/types'
 import { deleteWork, getWorks, renameWork } from '../../store/works'
@@ -53,7 +53,7 @@ function WorkThumbnail({ work, size }: { work: Work; size: number }) {
     return () => { active = false; clearTimeout(timer) }
   }, [work.id, work.updatedAt, work.cells, work.palette, work.width, work.height, size])
 
-  return imagePath ? <Image src={imagePath} mode='aspectFit' className='thumbnail-image' /> : null
+  return imagePath ? <img src={imagePath} alt='作品图纸预览' className='thumbnail-image' /> : null
 }
 
 export default function WorksPage() {

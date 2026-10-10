@@ -29,7 +29,7 @@
   border-radius: var(--r-md);
   background: #f6ece2;
 }
-.thumbnail-image { display: block; width: 100%; height: 100%; flex: none; }
+.thumbnail-image { object-fit: contain; object-position: center; display: block; width: 100%; height: 100%; flex: none; }
 .preview-size {
   position: absolute;
   right: 0;

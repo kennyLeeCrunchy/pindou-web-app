@@ -30,3 +30,13 @@
 .review-note { padding: 24rpx 12rpx; }
 .review-note-title { display: block; color: var(--ink-2); font-size: 26rpx; font-weight: 800; }
 .version { display: block; margin-top: 36rpx; color: #ae9d90; font-size: 24rpx; text-align: center; }
+
+.ai-settings { padding: 28rpx 32rpx; margin-bottom: 28rpx; }
+.ai-settings fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.ai-settings .ai-label { display: block; margin: 22PX 0 8PX; font-size: 16PX; font-weight: 700; }
+.ai-settings .ai-field { display: block; width: 100%; box-sizing: border-box; min-height: 52PX; padding: 12PX 14PX; border: 1PX solid var(--edge-2); border-radius: 8PX; background: #fffaf4; color: var(--ink); font: inherit; font-size: 16PX; }
+.ai-settings .ai-field:focus { outline: 2PX solid var(--red-dark); outline-offset: 2PX; }
+.ai-settings .raised-button, .exit-button { width: 100%; min-height: 52PX; margin-top: 22PX; }
+.settings-status { margin: 16PX 0 0; color: var(--ink-2); font-size: 16PX; line-height: 1.6; overflow-wrap: anywhere; }
+
+.ai-settings .ai-action { height: 52PX; min-height: 52PX; font-size: 18PX; line-height: 1.3; }

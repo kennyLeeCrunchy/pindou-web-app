@@ -1,9 +1,8 @@
-import { Button, Image, Input, Picker, ScrollView, Text, View } from '@tarojs/components'
+import { Input, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import StatusPanel from '../../components/StatusPanel'
-import { completePreparedPattern, preparePattern, defaultMaxColors, getQuotaStatus } from '../../services/api'
-import type { QuotaStatus } from '../../services/api'
+import { completePreparedPattern, preparePattern, defaultMaxColors } from '../../services/api'
 import type { BeadBrand, ConversionMode, FramingMode, PreparedConversion } from '../../shared/types'
 import { toUserMessage } from '../../utils/error'
 import { materializePrepared, materializePreviews, saveLatestPattern } from '../../utils/pattern'
@@ -51,20 +50,6 @@ const savedBrand = (): BeadBrand => { try { return Taro.getStorageSync(BRAND_KEY
 
 export default function ConvertPage() {
   const pending = useRef<{ signature: string; id: string }>()
-  const [noticeOpen, setNoticeOpen] = useState(false)
-  const [quota, setQuota] = useState<QuotaStatus>()
-  const [quotaError, setQuotaError] = useState('')
-  const [quotaLoading, setQuotaLoading] = useState(false)
-  const [quotaRefresh, setQuotaRefresh] = useState(0)
-  useEffect(() => {
-    if (!quotaRefresh) return
-    let active = true
-    setQuotaLoading(true); setQuotaError('')
-    void getQuotaStatus().then(value => { if (active) setQuota(value) })
-      .catch(() => { if (active) setQuotaError('暂时无法查询，请稍后重试') })
-      .finally(() => { if (active) setQuotaLoading(false) })
-    return () => { active = false }
-  }, [quotaRefresh])
   const [filePath, setFilePath] = useState('')
   const [fileSize, setFileSize] = useState(0)
   const [mode, setMode] = useState<ConversionMode>('cartoon_direct')
@@ -126,7 +111,7 @@ export default function ConvertPage() {
       setPrepared(await materializePrepared(result))
       pending.current = undefined
     } catch (reason) { setError(toUserMessage(reason)) }
-    finally { setLoading(false); if (mode === 'subject_cartoon') setQuotaRefresh(value => value + 1) }
+    finally { setLoading(false) }
   }
   const submit = async () => {
     if (!prepared || loading) return
@@ -141,54 +126,38 @@ export default function ConvertPage() {
   return <View className='convert-page'>
     <View className='convert-page__intro'><Text className='convert-page__eyebrow'>PERLABO · 图片转图纸</Text><Text className='convert-page__title'>制作拼豆图纸</Text><Text className='convert-page__subtitle'>选择图片和处理路线，获得三种尺寸的图纸。</Text></View>
     <View className='convert-card'><Text className='section-title'>01 · 选择图片</Text>
-      {filePath ? <View className='image-preview' onClick={chooseImage}><Image src={filePath} mode='aspectFit' /><Text>点击更换 · {(fileSize / 1024 / 1024).toFixed(1)} MB</Text></View> : <View className='upload-empty'><Text className='upload-empty__title'>选择图片开始制作</Text><Text className='upload-empty__hint'>支持 JPG、PNG、WebP，大图自动压缩</Text><Button className='raised-button upload-cta' onClick={chooseImage}>上传图片</Button></View>}
-      {filePath && <Text className='field-tip'>JPG、PNG、WebP；手机原图会自动压缩到适合图纸的尺寸后上传。</Text>}
+      {filePath ? <View className='image-preview' onClick={chooseImage}><img src={filePath} alt='已选择的图片' /><Text>点击更换 · {(fileSize / 1024 / 1024).toFixed(1)} MB</Text></View> : <View className='upload-empty'><Text className='upload-empty__title'>选择图片开始制作</Text><Text className='upload-empty__hint'>支持 JPG、PNG、WebP，大图自动压缩</Text><button type='button' className='raised-button upload-cta' onClick={chooseImage}>上传图片</button></View>}
+      {filePath && <Text className='field-tip'>JPG、PNG、WebP；大图会在浏览器压缩后上传。</Text>}
       {pickError && <Text className='upload-error'>{pickError}</Text>}
     </View>
     <View className='convert-card'><Text className='section-title'>02 · 选择处理路线</Text>
       {modes.map(item => <View key={item.key} className={`mode-card ${mode === item.key ? 'active' : ''}`} onClick={() => { if (loading || mode === item.key) return; setMode(item.key); setCustomColors(undefined); setPrepared(undefined); setError('') }}>
         <View className='mode-card__copy'><Text className='mode-card__title'>{item.title}</Text><Text className='field-tip'>{item.help}</Text></View>
-        {item.key === 'subject_cartoon' && <Button className='photo-notice-button' ariaLabel='查看照片重绘的效果、额度与隐私说明' onClick={event => { event.stopPropagation(); setNoticeOpen(true); if (!quota && !quotaLoading) setQuotaRefresh(value => value + 1) }}><View className='photo-notice-icon'>!</View></Button>}
+
       </View>)}
       {mode === 'subject_cartoon' && <><Text className='field-label'>要保留的主体（可选）</Text><Input className='text-field' value={subjectTarget} disabled={loading} maxlength={300} placeholder='例如：画面中央的人物' onInput={event => { setSubjectTarget(event.detail.value); setPrepared(undefined); setError('') }} /></>}
       {mode === 'subject_cartoon' && <><Text className='field-label'>人物取景</Text><View className='segments'>
-        <Button disabled={loading} className={framing === 'flat' ? 'active' : ''} onClick={() => { if (framing !== 'flat') { setFraming('flat'); setPrepared(undefined); setError('') } }}>平面版 · 原取景</Button>
-        <Button disabled={loading} className={framing === 'pendant' ? 'active' : ''} onClick={() => { if (framing !== 'pendant') { setFraming('pendant'); setPrepared(undefined); setError('') } }}>挂饰版 · 补全</Button>
+        <button type='button' disabled={loading} className={`segment-button ${framing === 'flat' ? 'active' : ''}`} onClick={() => { if (framing !== 'flat') { setFraming('flat'); setPrepared(undefined); setError('') } }}>平面版 · 原取景</button>
+        <button type='button' disabled={loading} className={`segment-button ${framing === 'pendant' ? 'active' : ''}`} onClick={() => { if (framing !== 'pendant') { setFraming('pendant'); setPrepared(undefined); setError('') } }}>挂饰版 · 补全</button>
       </View><Text className='field-tip'>仅选择挂饰版时才会补全原图未显示的身体。</Text></>}
     </View>
-    <Button className='raised-button primary-action' disabled={!filePath || loading} onClick={prepare}>{prepared ? '重新准备图片' : '第一步：准备图片'}</Button>
+    <button type='button' className='raised-button primary-action' disabled={!filePath || loading} onClick={prepare}>{prepared ? '重新准备图片' : '第一步：准备图片'}</button>
     {loading && loadingStage === 'prepare' && <StatusPanel kind='loading' title='正在准备图片' description={mode === 'subject_cartoon' ? 'AI 重绘与主体提取可能需要约一分钟。' : '正在准备图像。'} />}
     {error && loadingStage === 'prepare' && <StatusPanel kind='error' title='图片准备失败' description={error} />}
     {prepared && <View className='convert-card prepared-card'><Text className='section-title'>03 · 确认图像</Text>
       <Text className='field-tip'>确认图像后再生成图纸。修改色系、色数会复用这张图，不会再次调用 AI 重绘。</Text>
-      <View className='prepared-stages'>{([['原图', prepared.images.original], ...(prepared.mode === 'subject_cartoon' ? [['AI 重绘', prepared.images.ai]] : []), ...(prepared.mode !== 'scene_direct' ? [['透明主体', prepared.images.subject]] : [])] as [string, string | undefined][]).map(([label, url]) => url && <View className='prepared-stage' key={label}><Image src={url} mode='aspectFit' onClick={() => { void Taro.previewImage({ urls: [url], current: url }) }} /><Text>{label}</Text></View>)}</View>
+      <View className='prepared-stages'>{([['原图', prepared.images.original], ...(prepared.mode === 'subject_cartoon' ? [['AI 重绘', prepared.images.ai]] : []), ...(prepared.mode !== 'scene_direct' ? [['透明主体', prepared.images.subject]] : [])] as [string, string | undefined][]).map(([label, url]) => url && <View className='prepared-stage' key={label}><img src={url} alt={label} onClick={() => { void Taro.previewImage({ urls: [url], current: url }) }} /><Text>{label}</Text></View>)}</View>
     </View>}
     <View className='convert-card prepared-card'><Text className='section-title'>第二步 · 色系与色数</Text>
-      <View className='segments'>{brands.map(item => <Button key={item.key} disabled={loading} className={brand === item.key ? 'active' : ''} onClick={() => chooseBrand(item.key)}>{item.title}</Button>)}</View>
+      <View className='segments'>{brands.map(item => <button type='button' key={item.key} disabled={loading} className={`segment-button ${brand === item.key ? 'active' : ''}`} onClick={() => chooseBrand(item.key)}>{item.title}</button>)}</View>
       <Text className='field-tip'>两种色系均使用完整 221 色卡，色号与所选品牌对应。</Text>
       <View className='picker-row picker-row--spaced'><Text>{customColors === undefined ? '智能选色数' : `最多 ${maxColors} 色 · 自定义`}</Text>
-        <Picker mode='selector' disabled={loading} range={['智能选色数', ...colorOptions.map(v => `最多 ${v} 色`)]} value={customColors === undefined ? 0 : maxColors - 3} onChange={event => setCustomColors(Number(event.detail.value) === 0 ? undefined : colorOptions[Number(event.detail.value) - 1])}><Text className='picker-link'>修改 ›</Text></Picker>
+        <select className='color-picker' aria-label='颜色数量' disabled={loading} value={customColors ?? 'auto'} onChange={event => setCustomColors(event.target.value === 'auto' ? undefined : Number(event.target.value))}><option value='auto'>智能选色数</option>{colorOptions.map(value => <option key={value} value={value}>最多 {value} 色</option>)}</select>
       </View><Text className='field-tip'>默认自动选择颜色上限，最多 64 色；也可手动选择 4–64 色。实际用色可能更少。</Text>
     </View>
     {loading && loadingStage === 'pattern' && <StatusPanel kind='loading' title='正在生成图纸' description='正在选择豆色并生成三档图纸，不会再次调用 AI 重绘。' />}
     {error && loadingStage !== 'prepare' && <StatusPanel kind='error' title='图纸生成失败' description={error} />}
     {!loading && <Text className='tier-hint'>{prepared ? '将同时生成 52×52 · 78×78 · 104×104 三档尺寸；从预览返回可调整色数再生成。' : '请先完成第一步并确认图像。'}</Text>}
-    <Button className='raised-button primary-action' disabled={!prepared || loading} onClick={submit}>第二步：生成三档图纸</Button>
-    {noticeOpen && <View className='photo-notice-overlay' onTouchMove={event => event.stopPropagation()}>
-      <View className='photo-notice-dialog' ariaRole='dialog' ariaLabel='照片重绘使用说明'>
-        <Text className='photo-notice-title'>照片重绘使用说明</Text>
-        <ScrollView scrollY className='photo-notice-content'>
-          <Text className='photo-notice-point'>1. 关于效果：此功能为测试功能，重绘效果尚不稳定，我们期待您的反馈</Text>
-          <View className='photo-notice-point'>
-            <Text>2. 本次启动最多允许 {quota?.limit ?? 20} 次 AI 尝试，重启服务后计数重置；阿里云仍按实际调用计费。</Text>
-            <Text className='photo-notice-remaining'>当前次数剩余{quota ? (quota.unlimited ? '不限（您的账号已解除每日限制）' : `${quota.remaining}/${quota.limit}`) : (quotaError || '查询中…')}</Text>
-            {quota && quotaError && <Text className='field-tip'>刷新失败，当前显示上次查询的额度</Text>}
-            <Button className='photo-notice-refresh' disabled={quotaLoading} onClick={() => setQuotaRefresh(value => value + 1)}>刷新额度</Button>
-          </View>
-          <Text className='photo-notice-point'>3. 关于隐私：照片重绘会把图片和描述发送给阿里云北京 AI 服务。</Text>
-        </ScrollView>
-        <Button className='photo-notice-confirm' onClick={() => setNoticeOpen(false)}>我知道了</Button>
-      </View>
-    </View>}
+    <button type='button' className='raised-button primary-action' disabled={!prepared || loading} onClick={submit}>第二步：生成三档图纸</button>
   </View>
 }

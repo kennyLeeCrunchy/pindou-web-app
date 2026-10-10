@@ -42,3 +42,13 @@
   .hero { max-width: 850px; margin: 0 auto; }
   .steps { max-width: 850px; margin: 0 auto; }
 }
+
+.lan-help { margin-bottom: 28rpx; padding: 32rpx; }
+.lan-address { display: block; margin-top: 18rpx; font-size: 18PX; font-weight: 700; overflow-wrap: anywhere; }
+.lan-address a { color: var(--red-dark); }
+.brand-mark { object-fit: contain; }
+
+.home-page .hero, .home-page .steps, .home-page .lan-help { box-sizing: border-box; width: 100%; max-width: 850px; margin-left: auto; margin-right: auto; }
+.home-page .lan-help { margin-top: 28rpx; margin-bottom: 0; padding: 36rpx 32rpx; }
+.home-page .section-title { display: block; margin-bottom: 8rpx; font-size: 34rpx; font-weight: 800; }
+.home-page .lan-help .setting-description { display: block; margin-top: 12rpx; color: var(--ink-2); font-size: 25rpx; line-height: 1.6; }

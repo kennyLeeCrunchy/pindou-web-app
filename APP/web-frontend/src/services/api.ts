@@ -7,7 +7,7 @@ async function localRequest(path: string, init: RequestInit = {}): Promise<Respo
     return await fetch(path, { ...init, headers: { ...init.headers, 'X-Pindou-Local': '1' }, signal: AbortSignal.timeout(100000) })
   } catch (reason) {
     if (reason instanceof Error && /timeout|abort/i.test(reason.name)) throw new Error('处理超时，请重试')
-    throw new Error('本地服务连接失败，请确认启动窗口仍在运行')
+    throw new Error('本地服务连接失败，请重新启动拼豆应用')
   }
 }
 export interface QuotaStatus { limit: number; remaining: number | null; unlimited: boolean }
@@ -131,3 +131,15 @@ export async function completePreparedPattern(prepared: PreparedConversion, inpu
   return { ...result, mode: prepared.mode, framingMode: prepared.framingMode,
     aiPasses: prepared.aiPasses, images: { ...prepared.images } }
 }
+
+export interface ModelSettings { provider: string; protocol: 'dashscope' | 'openai'; model: string; base_url: string; key_configured: boolean }
+async function localJson(path: string, init: RequestInit = {}) {
+  const response = await localRequest(path, init)
+  const result = await response.json()
+  if (!response.ok) throw new Error(typeof result.detail === 'string' ? result.detail : '操作失败，请重试')
+  return result
+}
+export const getModelSettings = (): Promise<ModelSettings> => localJson('/api/local/settings', { cache: 'no-store' })
+export const saveModelSettings = (settings: Omit<ModelSettings, 'key_configured'> & { api_key: string }): Promise<ModelSettings> => localJson('/api/local/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) })
+export const stopLocalApp = () => localJson('/api/local/shutdown', { method: 'POST' })
+export const getLocalInfo = (): Promise<{ lan_url: string | null }> => localJson('/api/local/info', { cache: 'no-store' })

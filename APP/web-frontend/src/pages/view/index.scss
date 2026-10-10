@@ -79,11 +79,11 @@
 .viewer-hint { display: block; margin: 14rpx 0 20rpx; color: var(--ink-2); font-size: 22rpx; text-align: center; }
 
 .viewer-actions { margin: 18rpx 4rpx 0; }
-.viewer-actions button { width: 100%; font-size: 26rpx; }
+.viewer-actions .raised-button { width: 100%; font-size: 26rpx; }
 .viewer-error { display: block; margin: 14rpx 4rpx; color: #c33b35; font-size: 24rpx; }
 .viewer-export-canvas { position: absolute; top: 0; left: -100000rpx; }
 .viewer-state { display: flex; min-height: 70vh; flex-direction: column; align-items: center; justify-content: center; gap: 20rpx; color: var(--ink-2); font-size: 26rpx; }
-.viewer-state button { margin: 0; }
+.viewer-state .viewer-back-button { margin: 0; }
 
 @media (min-width: 700px) {
   .viewer { padding: 24px 18px calc(60px + env(safe-area-inset-bottom)); }

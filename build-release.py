@@ -10,25 +10,25 @@ ROOT = Path(__file__).resolve().parent
 BACKEND = ROOT / "APP/web-backend"
 FRONTEND = ROOT / "APP/web-frontend"
 BUILD = ROOT / ".tmp/portable"
-OUTPUT = ROOT / "releases/v0.1.0"
+OUTPUT = ROOT / "releases/v0.2.0"
 
 
 if __name__ == "__main__":
     if not (FRONTEND / "dist/index.html").is_file():
         raise SystemExit("Run npm run build in APP/web-frontend first.")
-    command = [sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--onedir",
+    command = [sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--onedir", "--windowed",
                "--name", "Pindou", "--specpath", str(BUILD), "--workpath", str(BUILD / "work"),
                "--distpath", str(BUILD / "dist"), "--paths", str(BACKEND),
                "--add-data", f"{BACKEND / 'app/data'};app/data",
                "--add-data", f"{BACKEND / 'color_standards/mard_221_colors_vertical.csv'};color_standards",
                "--add-data", f"{FRONTEND / 'dist'};web-frontend/dist",
+               "--add-data", f"{ROOT / 'configure-lan-firewall.ps1'};.",
                "--collect-submodules", "uvicorn"]
     for module in ("torch", "transformers", "tensorflow", "matplotlib", "pandas", "IPython", "scipy"):
         command.extend(["--exclude-module", module])
     subprocess.run(command + [str(BACKEND / "run_local.py")], cwd=ROOT, check=True)
     folder = BUILD / "dist/Pindou"
     shutil.copyfile(ROOT / "WINDOWS.md", folder / "使用说明.txt")
-    (folder / "配置 AI 密钥.cmd").write_text('@echo off\npushd "%~dp0"\nPindou.exe --configure\nif errorlevel 1 pause\npopd\n', encoding="ascii")
     OUTPUT.mkdir(parents=True, exist_ok=True)
     archive = OUTPUT / "pindou-web-windows-x64.zip"
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as package:

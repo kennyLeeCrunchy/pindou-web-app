@@ -14,7 +14,7 @@
 .upload-cta { min-width: 260rpx; margin-top: 28rpx; }
 
 .image-preview { overflow: hidden; border: 2rpx solid #c9ad97; border-radius: var(--r-md); background: #f6ece2; text-align: center; }
-.image-preview image { display: block; width: 100%; height: 380rpx; }
+.image-preview img { display: block; width: 100%; height: 380rpx; object-fit: contain; object-position: center; }
 .image-preview text { display: block; padding: 16rpx; color: var(--ink-2); font-size: 24rpx; line-height: 1.4; }
 
 .field-label { margin: 28rpx 0 14rpx; font-size: 27rpx; font-weight: 800; }
@@ -40,18 +40,6 @@
 .mode-card__copy { flex: 1; min-width: 0; }
 .mode-card__title { display: block; font-size: 29rpx; font-weight: 800; }
 .mode-card .field-tip { display: block; margin-top: 6rpx; }
-.photo-notice-button { display: flex; flex: none; align-items: center; justify-content: center; width: 88rpx; height: 88rpx; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
-.photo-notice-icon { display: flex; align-items: center; justify-content: center; box-sizing: border-box; width: 44rpx; height: 44rpx; border: 2rpx solid #d6aa3c; border-radius: 50%; background: var(--yellow); color: var(--red-dark); font-size: 30rpx; font-weight: 800; line-height: 1; }
-.photo-notice-button:active .photo-notice-icon { background: #ffe399; }
-.photo-notice-overlay { position: fixed; z-index: 1000; inset: 0; display: flex; align-items: center; justify-content: center; padding: 32rpx; background: rgba(0, 0, 0, .45); }
-.photo-notice-dialog { width: 100%; max-width: 640rpx; max-height: 80vh; overflow: hidden; border-radius: 20rpx; background: #fff; text-align: center; }
-.photo-notice-title { display: block; padding: 32rpx 24rpx 16rpx; color: var(--ink); font-size: 32rpx; font-weight: 800; }
-.photo-notice-content { height: 520rpx; max-height: 56vh; }
-.photo-notice-point { display: block; margin: 24rpx 32rpx; color: var(--ink-2); font-size: 27rpx; line-height: 1.7; text-align: center; }
-.photo-notice-remaining { display: block; margin-top: 10rpx; color: var(--red-dark); font-weight: 700; }
-.photo-notice-refresh { margin: 8rpx 0 0; padding: 8rpx; background: transparent; color: var(--red-dark); font-size: 24rpx; line-height: 1.5; }
-.photo-notice-confirm { margin: 0; padding: 24rpx; border-top: 2rpx solid #eee; border-radius: 0; background: #fff; color: var(--red-dark); font-size: 30rpx; font-weight: 700; line-height: 1.5; }
-
 .text-field {
   display: flex;
   align-items: center;
@@ -89,7 +77,7 @@
 .text-field[disabled='true'] .weui-input { cursor: not-allowed; }
 
 .segments { display: flex; gap: 14rpx; }
-.segments button {
+.segments .segment-button {
   display: flex;
   flex: 1;
   align-items: center;
@@ -109,11 +97,11 @@
   white-space: normal;
   transition: transform var(--t-fast), box-shadow var(--t-fast), background-color var(--t-fast);
 }
-.segments button.active { background: var(--yellow); box-shadow: 0 4rpx 0 var(--edge-yellow); color: var(--ink); font-weight: 800; }
-.segments button:active { transform: translateY(var(--lift-1)); box-shadow: 0 2rpx 0 var(--edge-2); }
+.segments .segment-button.active { background: var(--yellow); box-shadow: 0 4rpx 0 var(--edge-yellow); color: var(--ink); font-weight: 800; }
+.segments .segment-button:active { transform: translateY(var(--lift-1)); box-shadow: 0 2rpx 0 var(--edge-2); }
 
 .picker-row { display: flex; align-items: center; justify-content: space-between; font-size: 27rpx; }
-.picker-row picker { padding: 24rpx 0 16rpx 40rpx; }
+.color-picker { max-width: 55%; min-height: 44PX; padding: 8PX; border: 1PX solid var(--edge-2); border-radius: 6PX; background: var(--card); color: var(--red-dark); font-size: 16PX; }
 .picker-link { color: var(--red-dark); font-weight: 800; }
 .primary-action { width: 100%; margin-top: 30rpx; }
 
@@ -123,5 +111,9 @@
 .prepared-card { margin-top: 28rpx; }
 .prepared-stages { display: flex; flex-wrap: wrap; gap: 18rpx; margin-top: 22rpx; }
 .prepared-stage { flex: 1; min-width: 180rpx; text-align: center; }
-.prepared-stage image { display: block; width: 100%; height: 300rpx; border: 2rpx solid #c9ad97; border-radius: var(--r-md); background: #fff; }
+.prepared-stage img { display: block; width: 100%; height: 300rpx; box-sizing: border-box; object-fit: contain; object-position: center; border: 2rpx solid #c9ad97; border-radius: var(--r-md); background: #fff; }
 .prepared-stage text { display: block; margin-top: 12rpx; color: var(--ink-2); font-size: 23rpx; }
+
+.segments .segment-button { min-height: 48PX; font-size: clamp(16PX, 24rpx, 20PX); }
+.picker-row--spaced { flex-wrap: wrap; gap: 12PX; margin-top: 20PX; margin-bottom: 14PX; }
+.color-picker { box-sizing: border-box; min-width: 145PX; }
