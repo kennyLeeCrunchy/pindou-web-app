@@ -4,7 +4,9 @@
 
 ## 下载即用（Windows）
 
-1. 打开 [Windows 版 Release](https://github.com/kennyLeeCrunchy/pindou-web-app/releases/tag/v0.2.0)，下载 **pindou-web-windows-x64.zip**。
+[![下载 Windows 版](https://img.shields.io/badge/下载_Windows_版-v0.2.0-E04A42?style=for-the-badge)](https://github.com/kennyLeeCrunchy/pindou-web-app/releases/download/v0.2.0/pindou-web-windows-x64.zip)
+
+1. 点击上方按钮，直接下载 **pindou-web-windows-x64.zip**。无需下载 Source code。
 2. 右键“全部提取”，将整个文件夹解压到可写目录。
 3. 双击 **Pindou.exe**，浏览器会自动打开 `http://localhost:5188`。
 
